@@ -1,0 +1,412 @@
+# VFD Manufacturer Catalog
+# Variable Frequency Drive specifications by manufacturer, series, and frame
+#
+# Purpose: Catalog-first, override-per-load approach for VFD sizing
+# Data derived from publicly available technical documentation
+#
+# IMPORTANT:
+# - Values are from public technical data - verify against current publications
+# - Manufacturers update products; always check current datasheet
+# - SCCR ratings are for specific fuse/breaker combinations
+#
+# Version: 1.0.0
+# Last Updated: 2026-02-01
+
+_metadata:
+  version: "1.0.0"
+  last_updated: "2026-02-01"
+  sources:
+    - "ABB ACS580 Technical Data (3AUA0000262164)"
+    - "Siemens SINAMICS G120 Catalog (D11.1)"
+    - "Rockwell PowerFlex 755 Technical Data (750-TD002)"
+    - "Danfoss VLT FC302 Design Guide"
+  license_note: "Values derived from public technical documentation"
+  audit_trail: true
+  disclaimer: |
+    These values are for preliminary sizing only.
+    Always verify with current manufacturer documentation.
+    SCCR ratings depend on specific fuse/breaker combinations.
+
+# ============================================================================
+# ABB ACS580 Series (General Purpose)
+# ============================================================================
+
+abb_acs580:
+  description: "ABB ACS580 - General purpose drives"
+  voltage_classes: ["400V", "480V"]
+
+  frames_400v_nd:
+    description: "Normal Duty (ND) - Variable torque applications"
+    frames:
+      R1:
+        kw_range: [0.75, 2.2]
+        rated_input_current: 5.6
+        rated_output_current: 5.2
+        max_branch_scpd_a: 20
+        recommended_fuse: "20A Class J"
+        losses_kw: 0.08
+        sccr_ka: 65
+        notes: "With Class J fuse"
+      R2:
+        kw_range: [3.0, 5.5]
+        rated_input_current: 12.8
+        rated_output_current: 12.0
+        max_branch_scpd_a: 30
+        recommended_fuse: "30A Class J"
+        losses_kw: 0.15
+        sccr_ka: 65
+      R3:
+        kw_range: [7.5, 15]
+        rated_input_current: 32
+        rated_output_current: 30
+        max_branch_scpd_a: 60
+        recommended_fuse: "60A Class J"
+        losses_kw: 0.35
+        sccr_ka: 65
+      R4:
+        kw_range: [18.5, 30]
+        rated_input_current: 62
+        rated_output_current: 58
+        max_branch_scpd_a: 100
+        recommended_fuse: "100A Class J"
+        losses_kw: 0.65
+        sccr_ka: 65
+      R5:
+        kw_range: [37, 55]
+        rated_input_current: 110
+        rated_output_current: 103
+        max_branch_scpd_a: 175
+        recommended_fuse: "175A Class J"
+        losses_kw: 1.1
+        sccr_ka: 65
+      R6:
+        kw_range: [75, 110]
+        rated_input_current: 207
+        rated_output_current: 196
+        max_branch_scpd_a: 300
+        recommended_fuse: "300A Class J"
+        losses_kw: 2.0
+        sccr_ka: 65
+      R7:
+        kw_range: [132, 160]
+        rated_input_current: 302
+        rated_output_current: 287
+        max_branch_scpd_a: 450
+        recommended_fuse: "450A Class J"
+        losses_kw: 3.2
+        sccr_ka: 65
+      R8:
+        kw_range: [200, 250]
+        rated_input_current: 477
+        rated_output_current: 453
+        max_branch_scpd_a: 700
+        recommended_fuse: "700A Class L"
+        losses_kw: 5.0
+        sccr_ka: 65
+
+  frames_400v_hd:
+    description: "Heavy Duty (HD) - Constant torque applications"
+    frames:
+      R1:
+        kw_range: [0.55, 1.5]
+        rated_input_current: 3.7
+        rated_output_current: 3.5
+        max_branch_scpd_a: 15
+        recommended_fuse: "15A Class J"
+        losses_kw: 0.06
+        sccr_ka: 65
+      R2:
+        kw_range: [2.2, 4.0]
+        rated_input_current: 9.5
+        rated_output_current: 9.0
+        max_branch_scpd_a: 25
+        recommended_fuse: "25A Class J"
+        losses_kw: 0.12
+        sccr_ka: 65
+      R3:
+        kw_range: [5.5, 11]
+        rated_input_current: 24
+        rated_output_current: 22
+        max_branch_scpd_a: 50
+        recommended_fuse: "50A Class J"
+        losses_kw: 0.28
+        sccr_ka: 65
+      R4:
+        kw_range: [15, 22]
+        rated_input_current: 46
+        rated_output_current: 44
+        max_branch_scpd_a: 80
+        recommended_fuse: "80A Class J"
+        losses_kw: 0.50
+        sccr_ka: 65
+      R5:
+        kw_range: [30, 45]
+        rated_input_current: 87
+        rated_output_current: 83
+        max_branch_scpd_a: 150
+        recommended_fuse: "150A Class J"
+        losses_kw: 0.95
+        sccr_ka: 65
+      R6:
+        kw_range: [55, 90]
+        rated_input_current: 170
+        rated_output_current: 161
+        max_branch_scpd_a: 250
+        recommended_fuse: "250A Class J"
+        losses_kw: 1.7
+        sccr_ka: 65
+      R7:
+        kw_range: [110, 132]
+        rated_input_current: 253
+        rated_output_current: 240
+        max_branch_scpd_a: 400
+        recommended_fuse: "400A Class J"
+        losses_kw: 2.8
+        sccr_ka: 65
+      R8:
+        kw_range: [160, 200]
+        rated_input_current: 395
+        rated_output_current: 375
+        max_branch_scpd_a: 600
+        recommended_fuse: "600A Class L"
+        losses_kw: 4.5
+        sccr_ka: 65
+
+# ============================================================================
+# Siemens SINAMICS G120 Series
+# ============================================================================
+
+siemens_g120:
+  description: "Siemens SINAMICS G120 - Modular drive system"
+  voltage_classes: ["400V", "480V"]
+
+  frames_400v_nd:
+    description: "Normal Duty - Variable torque"
+    frames:
+      FSA:
+        kw_range: [0.37, 0.75]
+        rated_input_current: 2.2
+        rated_output_current: 2.0
+        max_branch_scpd_a: 10
+        losses_kw: 0.04
+        sccr_ka: 65
+      FSB:
+        kw_range: [1.1, 2.2]
+        rated_input_current: 5.5
+        rated_output_current: 5.2
+        max_branch_scpd_a: 20
+        losses_kw: 0.08
+        sccr_ka: 65
+      FSC:
+        kw_range: [3.0, 5.5]
+        rated_input_current: 12.5
+        rated_output_current: 11.8
+        max_branch_scpd_a: 30
+        losses_kw: 0.15
+        sccr_ka: 65
+      FSD:
+        kw_range: [7.5, 15]
+        rated_input_current: 32
+        rated_output_current: 30
+        max_branch_scpd_a: 60
+        losses_kw: 0.35
+        sccr_ka: 65
+      FSE:
+        kw_range: [18.5, 30]
+        rated_input_current: 60
+        rated_output_current: 57
+        max_branch_scpd_a: 100
+        losses_kw: 0.65
+        sccr_ka: 65
+      FSF:
+        kw_range: [37, 75]
+        rated_input_current: 145
+        rated_output_current: 138
+        max_branch_scpd_a: 225
+        losses_kw: 1.5
+        sccr_ka: 65
+      FSG:
+        kw_range: [90, 132]
+        rated_input_current: 255
+        rated_output_current: 242
+        max_branch_scpd_a: 400
+        losses_kw: 2.6
+        sccr_ka: 65
+      FSH:
+        kw_range: [160, 250]
+        rated_input_current: 475
+        rated_output_current: 450
+        max_branch_scpd_a: 700
+        losses_kw: 5.0
+        sccr_ka: 65
+
+# ============================================================================
+# Rockwell PowerFlex 755 Series
+# ============================================================================
+
+rockwell_powerflex_755:
+  description: "Allen-Bradley PowerFlex 755 - High performance AC drives"
+  voltage_classes: ["480V"]
+  notes: "NEMA voltage ratings"
+
+  frames_480v_nd:
+    description: "Normal Duty at 480V"
+    frames:
+      Frame_1:
+        kw_range: [0.75, 3.7]
+        rated_input_current: 9
+        rated_output_current: 8.5
+        max_branch_scpd_a: 25
+        recommended_fuse: "25A Class J"
+        losses_kw: 0.12
+        sccr_ka: 100
+      Frame_2:
+        kw_range: [5.5, 11]
+        rated_input_current: 22
+        rated_output_current: 21
+        max_branch_scpd_a: 50
+        recommended_fuse: "50A Class J"
+        losses_kw: 0.25
+        sccr_ka: 100
+      Frame_3:
+        kw_range: [15, 22]
+        rated_input_current: 40
+        rated_output_current: 38
+        max_branch_scpd_a: 80
+        recommended_fuse: "80A Class J"
+        losses_kw: 0.45
+        sccr_ka: 100
+      Frame_4:
+        kw_range: [30, 45]
+        rated_input_current: 78
+        rated_output_current: 74
+        max_branch_scpd_a: 125
+        recommended_fuse: "125A Class J"
+        losses_kw: 0.85
+        sccr_ka: 100
+      Frame_5:
+        kw_range: [55, 75]
+        rated_input_current: 130
+        rated_output_current: 124
+        max_branch_scpd_a: 200
+        recommended_fuse: "200A Class J"
+        losses_kw: 1.4
+        sccr_ka: 100
+      Frame_6:
+        kw_range: [90, 132]
+        rated_input_current: 230
+        rated_output_current: 219
+        max_branch_scpd_a: 350
+        recommended_fuse: "350A Class J"
+        losses_kw: 2.5
+        sccr_ka: 100
+      Frame_7:
+        kw_range: [160, 200]
+        rated_input_current: 350
+        rated_output_current: 332
+        max_branch_scpd_a: 500
+        recommended_fuse: "500A Class J"
+        losses_kw: 3.8
+        sccr_ka: 100
+      Frame_8:
+        kw_range: [250, 315]
+        rated_input_current: 540
+        rated_output_current: 515
+        max_branch_scpd_a: 800
+        recommended_fuse: "800A Class L"
+        losses_kw: 5.8
+        sccr_ka: 100
+
+# ============================================================================
+# Danfoss VLT FC302 Series
+# ============================================================================
+
+danfoss_fc302:
+  description: "Danfoss VLT AutomationDrive FC302"
+  voltage_classes: ["400V", "480V"]
+
+  frames_400v_nd:
+    description: "Normal Duty at 400V"
+    frames:
+      D1h:
+        kw_range: [0.37, 1.5]
+        rated_input_current: 4.0
+        rated_output_current: 3.7
+        max_branch_scpd_a: 16
+        losses_kw: 0.06
+        sccr_ka: 100
+      D2h:
+        kw_range: [2.2, 4.0]
+        rated_input_current: 9.8
+        rated_output_current: 9.3
+        max_branch_scpd_a: 25
+        losses_kw: 0.12
+        sccr_ka: 100
+      D3h:
+        kw_range: [5.5, 11]
+        rated_input_current: 24
+        rated_output_current: 22.5
+        max_branch_scpd_a: 50
+        losses_kw: 0.27
+        sccr_ka: 100
+      D4h:
+        kw_range: [15, 22]
+        rated_input_current: 46
+        rated_output_current: 44
+        max_branch_scpd_a: 80
+        losses_kw: 0.50
+        sccr_ka: 100
+      D5h:
+        kw_range: [30, 45]
+        rated_input_current: 90
+        rated_output_current: 85
+        max_branch_scpd_a: 150
+        losses_kw: 0.95
+        sccr_ka: 100
+      D6h:
+        kw_range: [55, 75]
+        rated_input_current: 147
+        rated_output_current: 140
+        max_branch_scpd_a: 225
+        losses_kw: 1.5
+        sccr_ka: 100
+      D7h:
+        kw_range: [90, 132]
+        rated_input_current: 260
+        rated_output_current: 246
+        max_branch_scpd_a: 400
+        losses_kw: 2.8
+        sccr_ka: 100
+      D8h:
+        kw_range: [160, 250]
+        rated_input_current: 480
+        rated_output_current: 456
+        max_branch_scpd_a: 700
+        losses_kw: 5.2
+        sccr_ka: 100
+
+# ============================================================================
+# Selection Notes
+# ============================================================================
+
+selection_notes: |
+  VFD Selection Process:
+  1. Determine duty type: Normal Duty (ND) for VT loads, Heavy Duty (HD) for CT loads
+  2. Match motor kW to VFD kW range
+  3. Verify VFD output current ≥ motor FLA
+  4. Check VFD SCCR ≥ available fault current
+  5. Select fuse per manufacturer recommendation for full SCCR rating
+
+  Common Derating Factors:
+  - Altitude >1000m: Derate ~3% per 500m above 1000m
+  - Ambient >40°C: Derate ~2-3% per °C above 40°C
+  - High carrier frequency: Derate for PWM >4kHz
+
+  VFD Application Types:
+  - Variable Torque (VT/ND): Pumps, fans, blowers - load varies with speed³
+  - Constant Torque (CT/HD): Conveyors, mixers, positive displacement - load constant
+
+  SCCR Notes:
+  - SCCR ratings require specific fuse type/size per manufacturer
+  - Class J fuses typically provide highest SCCR enhancement
+  - Verify combination rating in manufacturer documentation

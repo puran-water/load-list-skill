@@ -1,0 +1,320 @@
+# Branch Circuit Protection Catalog
+# NEC 430.52 / IEC 60947-4-1 motor branch circuit protection sizing
+#
+# Source: NFPA 70 National Electrical Code 2023, Table 430.52
+# Reference: Eaton Motor Circuit Notes (750-TD002)
+# Version: 1.0.0
+
+version: "1.0.0"
+last_updated: "2026-02-01"
+
+# ============================================================================
+# NEC Table 430.52 - Maximum Rating or Setting of Motor Branch-Circuit
+# Short-Circuit and Ground-Fault Protective Devices
+# ============================================================================
+
+nec_430_52:
+  description: |
+    NEC Table 430.52 provides MAXIMUM ratings for branch circuit
+    short-circuit and ground-fault protective devices.
+
+    IMPORTANT: These are MAXIMUM values. Actual selection may be lower
+    based on coordination requirements or equipment ratings.
+
+    Sizing basis: Percentage of motor Full Load Current (FLC) from
+    NEC Tables 430.247-430.250 (NOT nameplate FLA).
+
+  # Motor FLC tables reference
+  motor_flc_tables:
+    single_phase: "NEC 430.248"
+    three_phase_synchronous: "NEC 430.249"
+    three_phase_induction: "NEC 430.250"
+    dc_motors: "NEC 430.247"
+
+  # Device types and maximum ratings
+  device_types:
+    # Non-time-delay fuse (Class H, K, etc.)
+    non_time_delay_fuse:
+      description: "Non-time-delay fuse (Class H, K, etc.)"
+      max_pct_flc: 300
+      exception_pct_flc: 400
+      exception_condition: "If 300% is not sufficient for starting current"
+      typical_fuse_classes: ["H", "K", "T"]
+      notes: |
+        Non-time-delay fuses have fast response to overcurrent.
+        Use exception (400%) only if motor cannot start with 300%.
+
+    # Dual-element time-delay fuse (Class RK1, RK5, J, CC)
+    dual_element_fuse:
+      description: "Dual-element time-delay fuse (Class RK1, RK5, J, CC)"
+      max_pct_flc: 175
+      exception_pct_flc: 225
+      exception_condition: "If 175% is not sufficient for starting current"
+      typical_fuse_classes: ["J", "RK1", "RK5", "CC"]
+      notes: |
+        Time-delay fuses allow motor starting inrush while providing
+        short-circuit protection. Preferred for motor circuits.
+        Class J fuses provide current limitation for SCCR.
+
+    # Inverse time circuit breaker (thermal-magnetic)
+    inverse_time_cb:
+      description: "Inverse time circuit breaker (thermal-magnetic MCCB)"
+      max_pct_flc: 250
+      exception_pct_flc: 400
+      exception_condition: "If 250% is not sufficient for starting current"
+      notes: |
+        Standard thermal-magnetic breakers with inverse-time trip.
+        Must coordinate with downstream overload relay.
+
+    # Instantaneous trip circuit breaker (MCP)
+    instantaneous_trip_cb:
+      description: "Instantaneous trip circuit breaker (MCP, motor short-circuit protector)"
+      max_pct_flc: 800
+      exception_pct_flc: 1100
+      exception_pct_flc_design_b_energy_efficient: 1300
+      exception_condition: |
+        1100% for other than Design B energy-efficient motors.
+        1300% for Design B energy-efficient motors per 430.52(C)(5).
+      adjustable_range_pct: [800, 1300]
+      notes: |
+        MCPs (Motor Circuit Protectors) provide instantaneous-only trip.
+        MUST be used with a listed combination motor controller.
+        Provides short-circuit protection, NOT overload protection.
+        Per NEC 430.52(C)(3), MCP must be part of a listed combination.
+
+    # Motor short-circuit protector (for combination starters)
+    motor_short_circuit_protector:
+      description: "Motor short-circuit protector (MSCP) for combination starters"
+      max_pct_flc: 800
+      exception_pct_flc: 1700
+      exception_condition: "When part of a listed combination motor controller"
+      notes: |
+        High interrupting capacity device designed specifically for
+        motor circuit protection in combination starters.
+
+  # Standard fuse and breaker sizes per NEC 240.6
+  standard_sizes_nec_240_6:
+    fuses_and_breakers_up_to_600a:
+      - 15
+      - 20
+      - 25
+      - 30
+      - 35
+      - 40
+      - 45
+      - 50
+      - 60
+      - 70
+      - 80
+      - 90
+      - 100
+      - 110
+      - 125
+      - 150
+      - 175
+      - 200
+      - 225
+      - 250
+      - 300
+      - 350
+      - 400
+      - 450
+      - 500
+      - 600
+
+    fuses_and_breakers_601a_to_6000a:
+      - 700
+      - 800
+      - 1000
+      - 1200
+      - 1600
+      - 2000
+      - 2500
+      - 3000
+      - 4000
+      - 5000
+      - 6000
+
+  # Next-size-up rule per NEC 430.52(C)(1) Exception 1
+  next_size_up_rule:
+    description: |
+      NEC 430.52(C)(1) Exception 1: Where the values for branch-circuit
+      short-circuit and ground-fault protective devices do not correspond
+      to the standard ampere ratings of fuses or nonadjustable circuit
+      breakers, the next HIGHER standard rating shall be permitted.
+
+    applies_to: ["non_time_delay_fuse", "dual_element_fuse", "inverse_time_cb"]
+    does_not_apply_to: ["instantaneous_trip_cb", "motor_short_circuit_protector"]
+
+    notes: |
+      The next-size-up rule applies ONLY to the maximum value calculation.
+      Example: 175% × 195A FLC = 341A → next standard size is 350A.
+      This rule does NOT permit exceeding the maximum percentage.
+
+# ============================================================================
+# IEC 60947-4-1 Motor Starter Coordination
+# ============================================================================
+
+iec_60947_4_1:
+  description: |
+    IEC 60947-4-1 defines coordination types for motor starters.
+    Type 1: Damage to starter permitted, no danger to personnel
+    Type 2: No damage to starter that prevents normal operation
+
+  coordination_types:
+    type_1:
+      description: "Type 1 coordination - Contactors and starters shall cause no danger"
+      notes: |
+        Under short-circuit conditions, the contactor or starter may not
+        be suitable for further service without repair and replacement of parts.
+        No danger to persons or installation.
+
+    type_2:
+      description: "Type 2 coordination - No damage to contactor or starter"
+      notes: |
+        Under short-circuit conditions, the contactor or starter shall be
+        suitable for further use. Risk of contact welding is permitted
+        if contacts are easily separable.
+
+  # SCPD coordination with starters (manufacturer-dependent)
+  scpd_starter_coordination:
+    notes: |
+      IEC 60947-4-1 requires SCPD to be coordinated with the contactor/starter.
+      Coordination tables are manufacturer-specific.
+      Reference manufacturer literature for specific combinations.
+
+# ============================================================================
+# Fuse Classes and Characteristics
+# ============================================================================
+
+fuse_classes:
+  description: "North American fuse classes per UL/CSA standards"
+
+  class_j:
+    description: "Class J - Current-limiting, very fast"
+    voltage_rating: "600V AC, 300V DC"
+    interrupting_rating: "200 kA"
+    time_delay: false
+    current_limiting: true
+    dimensions: "Rejection-type (non-interchangeable)"
+    applications: ["Motor circuits", "SCCR enhancement", "Branch circuit protection"]
+    notes: "Most common for motor circuits requiring high SCCR"
+
+  class_rk1:
+    description: "Class RK1 - Time-delay, current-limiting"
+    voltage_rating: "600V AC, 300V DC"
+    interrupting_rating: "200 kA"
+    time_delay: true
+    current_limiting: true
+    dimensions: "Interchangeable with Class H/K"
+    applications: ["Motor circuits", "General purpose"]
+    notes: "Preferred for motor circuits - allows starting inrush"
+
+  class_rk5:
+    description: "Class RK5 - Time-delay, limited current-limiting"
+    voltage_rating: "600V AC, 300V DC"
+    interrupting_rating: "200 kA"
+    time_delay: true
+    current_limiting: true  # Less limiting than RK1
+    dimensions: "Interchangeable with Class H/K"
+    applications: ["Motor circuits", "General purpose"]
+    notes: "Less expensive than RK1, lower current limitation"
+
+  class_cc:
+    description: "Class CC - Compact, current-limiting"
+    voltage_rating: "600V AC"
+    interrupting_rating: "200 kA"
+    time_delay: true
+    current_limiting: true
+    dimensions: "Compact, rejection-type"
+    applications: ["Control circuits", "Small motor circuits"]
+    notes: "Compact size, good for control transformers and small motors"
+
+  class_t:
+    description: "Class T - Very fast, current-limiting"
+    voltage_rating: "600V AC, 300V DC"
+    interrupting_rating: "200 kA"
+    time_delay: false
+    current_limiting: true
+    dimensions: "Compact, rejection-type"
+    applications: ["High fault current applications", "Main protection"]
+    notes: "Fastest acting, highest current limitation"
+
+# ============================================================================
+# Selection Logic
+# ============================================================================
+
+selection_logic:
+  description: "Branch circuit SCPD selection algorithm per NEC 430.52"
+
+  steps:
+    - step: 1
+      action: "Determine motor FLC from NEC tables (430.247-430.250)"
+      notes: "Use TABLE FLC, not nameplate FLA"
+
+    - step: 2
+      action: "Select protective device type"
+      considerations:
+        - "Dual-element fuse (175%): Best motor starting margin"
+        - "Inverse-time CB (250%): Standard breaker protection"
+        - "MCP (800%): Highest margin, requires listed combination"
+
+    - step: 3
+      action: "Calculate maximum device rating"
+      formula: "Max Rating = FLC × (max_pct_flc / 100)"
+
+    - step: 4
+      action: "Apply next-size-up rule if calculated value not standard"
+      formula: "Select next HIGHER standard size per NEC 240.6"
+      exception: "Does not apply to instantaneous-trip devices"
+
+    - step: 5
+      action: "Verify device does not exceed maximum percentage"
+      check: "Selected rating ≤ FLC × (exception_pct_flc / 100)"
+
+    - step: 6
+      action: "Check VFD manufacturer recommendations"
+      notes: |
+        VFD manufacturers often specify maximum SCPD ratings.
+        Use lower of: NEC maximum OR VFD manufacturer maximum.
+
+    - step: 7
+      action: "Verify SCCR coordination"
+      notes: |
+        Selected device must provide adequate SCCR for assembly.
+        Class J fuses typically provide highest SCCR enhancement.
+
+# ============================================================================
+# Examples
+# ============================================================================
+
+examples:
+  - description: "50 HP motor at 460V, dual-element fuse"
+    motor_hp: 50
+    voltage: 460
+    flc_table_a: 65  # From NEC 430.250
+    device_type: "dual_element_fuse"
+    calculation: "175% × 65A = 113.75A"
+    next_size_up: "125A (per NEC 240.6)"
+    selected_rating: 125
+    notes: "Standard selection for DOL motor"
+
+  - description: "100 HP motor at 460V, inverse-time CB"
+    motor_hp: 100
+    voltage: 460
+    flc_table_a: 124  # From NEC 430.250
+    device_type: "inverse_time_cb"
+    calculation: "250% × 124A = 310A"
+    next_size_up: "350A (per NEC 240.6)"
+    selected_rating: 350
+    notes: "If 250% insufficient, can use up to 400% (496A → 500A)"
+
+  - description: "25 HP motor at 460V, MCP in combination starter"
+    motor_hp: 25
+    voltage: 460
+    flc_table_a: 34  # From NEC 430.250
+    device_type: "instantaneous_trip_cb"
+    calculation: "800% × 34A = 272A"
+    adjustable_range: "272A to 442A (1300%)"
+    selected_rating: "Adjustable MCP, set per motor starting requirements"
+    notes: "MCP must be part of listed combination motor controller"

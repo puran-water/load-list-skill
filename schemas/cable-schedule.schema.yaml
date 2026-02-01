@@ -1,0 +1,186 @@
+# Cable Schedule Schema
+# Cable schedule data model for contractor costing
+#
+# Standards Reference:
+# - NEC Article 310 (Conductors)
+# - NEC Article 430.22 (Motor Branch Circuits)
+# - IEC 60364-5-52 (Wiring Systems)
+#
+# Version: 1.0.0
+# Last Updated: 2026-02-01
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://load-list-skill/schemas/cable-schedule.schema.yaml"
+
+title: "Cable Schedule Schema"
+description: "Schema for cable schedule data"
+type: object
+
+properties:
+  # Schedule Metadata
+  panel_tag:
+    type: string
+    description: "Source panel tag"
+
+  cable_count:
+    type: integer
+    description: "Total cables in schedule"
+
+  total_length_m:
+    type: number
+    description: "Total cable length (m)"
+
+  cables_with_assumed_length:
+    type: integer
+    description: "Count of cables with assumed lengths"
+
+  cables_with_vd_issues:
+    type: integer
+    description: "Count of cables with voltage drop issues"
+
+  standard:
+    type: string
+    enum: [NEC, IEC]
+    description: "Cable sizing standard"
+
+  ambient_temp_c:
+    type: number
+    description: "Ambient temperature for sizing"
+
+  # Cable Entries
+  cables:
+    type: array
+    items:
+      $ref: "#/$defs/cable_entry"
+
+  # Disclaimers
+  disclaimers:
+    type: array
+    items:
+      type: string
+
+# Cable Entry Definition
+$defs:
+  cable_entry:
+    type: object
+    required:
+      - cable_tag
+      - from_panel
+      - to_equipment
+    properties:
+      cable_tag:
+        type: string
+        description: "Cable tag (e.g., C-200-01)"
+
+      from_panel:
+        type: string
+        description: "Source panel tag"
+
+      to_equipment:
+        type: string
+        description: "Destination equipment tag"
+
+      equipment_description:
+        type: string
+        description: "Equipment description"
+
+      motor_kw:
+        type: number
+        description: "Motor rating (kW)"
+
+      cable_type:
+        type: string
+        description: "Cable application type"
+        enum: [Motor Branch, VFD Supply, Feeder, Control]
+
+      cable_construction:
+        type: string
+        description: "Full cable construction string"
+
+      cable_size:
+        type: string
+        description: "Cable size designation"
+
+      cable_size_mm2:
+        type: number
+        description: "Conductor cross-section (mm²)"
+
+      length_m:
+        type: number
+        description: "Cable length (m)"
+
+      length_assumed:
+        type: boolean
+        description: "True if length is estimated"
+
+      length_basis:
+        type: string
+        description: "Basis for length estimate"
+
+      voltage_drop_pct:
+        type: number
+        description: "Calculated voltage drop (%)"
+
+      voltage_drop_compliant:
+        type: boolean
+        description: "True if VD ≤3% (branch) or ≤2% (feeder)"
+
+      current_a:
+        type: number
+        description: "Design current (A)"
+
+      sizing_basis:
+        type: string
+        description: "Basis for cable sizing"
+
+      ambient_temp_c:
+        type: number
+        description: "Ambient temperature used"
+
+      quantity:
+        type: integer
+        description: "Cable quantity"
+        default: 1
+
+      route:
+        type: string
+        description: "Cable route description"
+
+      notes:
+        type: string
+        description: "Additional notes"
+
+      # Provenance
+      provenance:
+        type: object
+        properties:
+          length_source:
+            type: string
+            enum: [layout, assumption, user_input]
+          sizing_source:
+            type: string
+            enum: [calculated, user_override]
+
+# Example instance
+examples:
+  - panel_tag: "MCC-200"
+    cable_count: 3
+    total_length_m: 165
+    cables_with_assumed_length: 3
+    standard: "IEC"
+    cables:
+      - cable_tag: "C-200-01"
+        from_panel: "MCC-200"
+        to_equipment: "200-B-01A"
+        equipment_description: "Aeration Blower #1"
+        motor_kw: 110
+        cable_type: "VFD Supply"
+        cable_construction: "3C+E Cu XLPE/SWA/PVC 70 mm²"
+        cable_size: "70 mm²"
+        cable_size_mm2: 70
+        length_m: 45
+        length_assumed: true
+        length_basis: "Typical blower room distance"
+        voltage_drop_pct: 1.8
+        voltage_drop_compliant: true
+        current_a: 207

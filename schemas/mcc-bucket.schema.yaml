@@ -1,0 +1,429 @@
+# MCC Bucket Schema
+# Data model for Motor Control Center bucket-level detail.
+#
+# Source: Codex Plan - Phase 4 (moved to P0 per Codex recommendation)
+# Standards: UL 845, IEC 61439-1/2, NEC Article 430
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "mcc-bucket.schema.yaml"
+title: "MCC Bucket"
+description: |
+  Motor Control Center bucket-level data model.
+  Provides engineering-grade detail for panel builder specifications.
+
+  Each bucket represents a vertical section/unit in the MCC containing:
+  - Motor starter/controller (DOL, VFD, soft starter)
+  - Branch circuit protection (MCCB, fuse, MCP)
+  - Overload protection (thermal relay or VFD integral)
+  - Control circuitry
+
+type: object
+required:
+  - bucket_id
+  - panel_tag
+  - unit_type
+
+properties:
+  # Bucket Identity
+  bucket_id:
+    type: string
+    pattern: "^[A-Z]{2,4}-[0-9]{3}-[0-9]{2}[A-Z]?$"
+    description: "Unique bucket identifier (e.g., 'MCC-200-01A')"
+
+  panel_tag:
+    type: string
+    description: "Parent MCC panel tag (e.g., 'MCC-200')"
+
+  position:
+    type: string
+    description: |
+      Physical position in MCC lineup.
+      Format: Section + Row (e.g., '1A' = Section 1, Row A)
+
+  unit_type:
+    type: string
+    enum:
+      - "FVNR"           # Full Voltage Non-Reversing (DOL)
+      - "FVR"            # Full Voltage Reversing
+      - "RVNR"           # Reduced Voltage Non-Reversing
+      - "RVR"            # Reduced Voltage Reversing
+      - "VFD"            # Variable Frequency Drive
+      - "SOFT_STARTER"   # Solid State Soft Starter
+      - "FEEDER"         # Feeder only (no starter)
+      - "COMBINATION"    # Combination starter
+      - "CONTROL_POWER"  # Control Power Transformer
+      - "PLC"            # PLC/Remote I/O section
+      - "SPACE"          # Space (future use)
+      - "SPARE"          # Spare bucket (wired)
+    description: "Type of bucket/unit"
+
+  # Motor Data (if motor feeder)
+  motor_tag:
+    type: string
+    description: "Equipment tag of served motor"
+
+  motor_description:
+    type: string
+    description: "Motor/equipment description"
+
+  motor_rated_kw:
+    type: number
+    minimum: 0
+    description: "Motor nameplate kW (mechanical output for IEC, convert HP for NEMA)"
+
+  motor_rated_hp:
+    type: number
+    minimum: 0
+    description: "Motor nameplate HP (for NEMA motors)"
+
+  # FLC vs FLA Distinction (per NEC 430.6(A)(1))
+  flc_table_a:
+    type: number
+    description: |
+      Full Load Current from code tables (NEC 430.250/430.248 or IEC 60034).
+      Used for: NEC 430.22 (branch conductor), 430.24 (feeder conductor),
+      430.52 (branch SCPD), 430.62 (feeder SCPD)
+
+  fla_nameplate_a:
+    type: number
+    description: |
+      Full Load Amps from motor nameplate.
+      Used for: NEC 430.32 (overload protection settings)
+
+  flc_source:
+    $ref: "electrical-basis.schema.yaml#/$defs/provenance"
+    description: "Source and provenance of FLC value"
+
+  fla_source:
+    $ref: "electrical-basis.schema.yaml#/$defs/provenance"
+    description: "Source and provenance of FLA value"
+
+  lra:
+    type: number
+    description: "Locked Rotor Amps"
+
+  # Branch Circuit Protection (NEC 430.52 / IEC 60947)
+  branch_scpd_type:
+    type: string
+    enum:
+      - "MCCB"                    # Molded Case Circuit Breaker (inverse time)
+      - "MPCB"                    # Motor Protection Circuit Breaker
+      - "MCP"                     # Motor Circuit Protector (instantaneous only)
+      - "FUSE_DUAL_ELEMENT"       # Time-delay fuse (Class RK1, RK5, J)
+      - "DUAL_ELEMENT_FUSE"       # Alternate form from generator
+      - "FUSE_NON_TIME_DELAY"     # Non-time-delay fuse (Class H, K, T)
+      - "NON_TIME_DELAY_FUSE"     # Alternate form
+      - "INVERSE_TIME_CB"         # Inverse time circuit breaker
+      - "INSTANTANEOUS_TRIP_CB"   # Instantaneous only circuit breaker
+      - "ICB"                     # Insulated Case Breaker
+    description: "Branch circuit short-circuit protective device type"
+
+  branch_scpd_rating_a:
+    type: number
+    description: |
+      Branch SCPD rating in Amps.
+      Sized per NEC 430.52 / IEC 60947-4-1.
+      Must not exceed maximum percentage of FLC per device type.
+
+  branch_scpd_frame_a:
+    type: number
+    description: "SCPD frame size (for breakers with adjustable trip)"
+
+  branch_scpd_trip_a:
+    type: number
+    description: "SCPD trip setting (if adjustable)"
+
+  branch_scpd_fuse_class:
+    type: string
+    enum: ["J", "RK1", "RK5", "CC", "T", "H", "K", "L"]
+    description: "Fuse class (if branch_scpd_type is fuse)"
+
+  branch_scpd_sizing_basis:
+    type: string
+    description: |
+      Basis for SCPD sizing.
+      e.g., "NEC 430.52: 250% FLC = 487A, next standard size 500A"
+
+  # Overload Protection (NEC 430.32 / IEC 60947-4-1)
+  overload_type:
+    type: string
+    enum:
+      - "THERMAL"           # Bimetallic thermal relay
+      - "ELECTRONIC"        # Electronic overload relay
+      - "VFD_INTEGRAL"      # Integral to VFD
+      - "SOLID_STATE"       # Solid state in soft starter
+    description: "Type of overload protection"
+
+  overload_setting_a:
+    type: number
+    description: |
+      Overload trip setting in Amps.
+      Based on motor nameplate FLA per NEC 430.32:
+      - SF ≥ 1.15 or temp rise ≤ 40°C: max 125% of FLA
+      - Other motors: max 115% of FLA
+
+  overload_class:
+    type: string
+    enum: ["5", "10", "10A", "20", "30"]
+    description: |
+      Overload relay trip class per IEC 60947-4-1.
+      Indicates maximum trip time at 7.2× FLA.
+
+  overload_sizing_basis:
+    type: string
+    description: |
+      Basis for overload sizing.
+      e.g., "NEC 430.32: SF=1.15, 125% × 195A FLA = 244A"
+
+  # Starter/Controller
+  starter_frame:
+    type: string
+    description: "IEC contactor frame (00-9) or NEMA starter size (00-9)"
+
+  contactor_rating:
+    type: string
+    description: "Contactor AC-3 rating (e.g., 'AC-3 50A 400V')"
+
+  vfd_manufacturer:
+    type: string
+    description: "VFD manufacturer (e.g., 'ABB', 'Siemens', 'Rockwell')"
+
+  vfd_model:
+    type: string
+    description: "VFD model/series (e.g., 'ACS580', 'PowerFlex 755')"
+
+  vfd_frame:
+    type: string
+    description: "VFD frame size"
+
+  vfd_input_current_a:
+    type: number
+    description: "VFD rated input current (for conductor sizing per NEC 430.122)"
+
+  vfd_output_current_a:
+    type: number
+    description: "VFD rated output current"
+
+  vfd_overload_integral:
+    type: boolean
+    default: true
+    description: "Whether VFD provides integral overload protection"
+
+  soft_starter_frame:
+    type: string
+    description: "Soft starter frame size"
+
+  # SCCR Rating
+  sccr_ka:
+    type: number
+    description: |
+      Short-Circuit Current Rating of bucket assembly (kA).
+      Per UL 845 / IEC 61439.
+
+  sccr_source:
+    type: string
+    enum: ["manufacturer_tested", "combination_rated", "component_minimum", "preliminary_estimate"]
+    description: "Source of SCCR rating"
+
+  sccr_notes:
+    type: string
+    description: "Notes on SCCR rating (e.g., combination rating requirements)"
+
+  # Cable Termination
+  incoming_cable_size:
+    type: string
+    description: "Incoming feeder cable size (e.g., '3×95mm² + E' or '3/0 AWG')"
+
+  incoming_cable_type:
+    type: string
+    description: "Cable type (e.g., 'XLPE/SWA/PVC', 'THHN/THWN')"
+
+  outgoing_cable_size:
+    type: string
+    description: "Outgoing motor cable size"
+
+  outgoing_cable_type:
+    type: string
+    description: "Cable type for motor connection"
+
+  outgoing_cable_length_m:
+    type: number
+    description: "Cable length to motor (meters)"
+
+  # Physical
+  bucket_height_units:
+    type: integer
+    enum: [1, 2, 3, 4]
+    description: |
+      Bucket height in standard units.
+      1 unit = 6" (152mm), typical values:
+      1 unit: small DOL starters
+      2 units: medium starters, small VFDs
+      3-4 units: large VFDs
+
+  bucket_width_mm:
+    type: number
+    description: "Bucket width in mm (standard: 400, 600, 800)"
+
+  withdrawable:
+    type: boolean
+    default: false
+    description: "Whether bucket is withdrawable type"
+
+  construction:
+    type: string
+    enum: ["FIXED", "PLUG_IN", "WITHDRAWABLE"]
+    description: "Bucket construction type"
+
+  # Control Circuit
+  control_voltage:
+    type: number
+    enum: [24, 48, 110, 120, 220, 230, 240]
+    description: "Control circuit voltage (V)"
+
+  control_transformer_va:
+    type: number
+    description: "Control power transformer VA rating (if applicable)"
+
+  # Coordination Hooks (per Codex - for future coordination study)
+  coordination_data:
+    type: object
+    description: "Data for protection coordination studies"
+    properties:
+      device_type:
+        type: string
+        enum: ["fuse", "mccb", "mpcb", "icb", "mcp"]
+
+      curve_family:
+        type: string
+        enum: ["inverse_time", "instantaneous_only", "electronic", "dual_element"]
+
+      manufacturer_series:
+        type: string
+        description: "Device manufacturer and series"
+
+      trip_unit:
+        type: string
+        description: "Trip unit type (if electronic)"
+
+      # Settings (for adjustable devices)
+      Ir:
+        type: number
+        description: "Overload pickup (A)"
+
+      Isd:
+        type: number
+        description: "Short-time pickup (A)"
+
+      tsd:
+        type: number
+        description: "Short-time delay (sec)"
+
+      Ii:
+        type: number
+        description: "Instantaneous pickup (A)"
+
+      In:
+        type: number
+        description: "Nominal current (A)"
+
+      # Coordination output points
+      inrush_multiple:
+        type: number
+        description: "Expected inrush current multiple (LRA/FLA)"
+
+      expected_start_time_sec:
+        type: number
+        description: "Expected motor start time"
+
+      available_fault_at_bucket_ka:
+        type: number
+        description: "Available fault current at this bucket"
+
+  # Provenance Tracking
+  provenance:
+    $ref: "electrical-basis.schema.yaml#/$defs/provenance"
+    description: "Selection stage and source tracking"
+
+  assumption_flags:
+    type: object
+    description: "Assumption flags for output tier gating"
+    properties:
+      cable_length_assumed:
+        type: boolean
+        default: true
+      fault_current_assumed:
+        type: boolean
+        default: true
+      motor_data_from_nameplate:
+        type: boolean
+        default: false
+
+  notes:
+    type: string
+    description: "Additional notes"
+
+# Example
+examples:
+  - bucket_id: "MCC-200-01A"
+    panel_tag: "MCC-200"
+    position: "1A"
+    unit_type: "VFD"
+
+    motor_tag: "200-B-01A"
+    motor_description: "Aeration Blower #1"
+    motor_rated_kw: 110
+
+    flc_table_a: 195
+    fla_nameplate_a: 188
+    flc_source:
+      source: "table"
+      selection_stage: "preliminary_generic"
+      notes: "NEC 430.250 @ 460V"
+    lra: 1170
+
+    branch_scpd_type: "MCCB"
+    branch_scpd_rating_a: 300
+    branch_scpd_sizing_basis: "NEC 430.52: 250% × 195A = 487.5A, max standard size ≤ table value is 500A, selected 300A per VFD manufacturer recommendation"
+
+    overload_type: "VFD_INTEGRAL"
+    overload_setting_a: 188
+    overload_class: "10"
+    overload_sizing_basis: "VFD integral, programmed to motor nameplate FLA"
+
+    vfd_manufacturer: "ABB"
+    vfd_model: "ACS580"
+    vfd_frame: "R6"
+    vfd_input_current_a: 207
+    vfd_output_current_a: 196
+    vfd_overload_integral: true
+
+    sccr_ka: 65
+    sccr_source: "manufacturer_tested"
+    sccr_notes: "ABB ACS580 with Class J fuse coordination"
+
+    incoming_cable_size: "3×95mm² + E"
+    outgoing_cable_size: "3×70mm² + E"
+    outgoing_cable_length_m: 45
+
+    bucket_height_units: 3
+    withdrawable: true
+    construction: "WITHDRAWABLE"
+    control_voltage: 120
+
+    coordination_data:
+      device_type: "mccb"
+      curve_family: "inverse_time"
+      manufacturer_series: "ABB Tmax XT"
+      Ir: 300
+      Ii: 3000
+      inrush_multiple: 6.0
+      expected_start_time_sec: 5
+      available_fault_at_bucket_ka: 18
+
+    provenance:
+      source: "vendor_datasheet"
+      selection_stage: "manufacturer_specific_final"
+      notes: "Per ABB ACS580 technical data 3AUA0000262164"
+
+    notes: "VFD for aeration DO control, 40-100% speed range"

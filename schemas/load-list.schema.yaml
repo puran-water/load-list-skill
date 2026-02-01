@@ -1,0 +1,642 @@
+# Load List Schema - Tier 2 Electrical Load Data Model
+# Source of truth for equipment electrical characteristics and energy calculations
+#
+# Upstream: equipment-list-skill (equipment-list.qmd)
+# Downstream: sld-skill, cable-schedule-skill, control-philosophy-skill
+#
+# Version 2.0.0 Changes (per Codex Engineering-Grade Refactor):
+# - Added FLC vs FLA distinction per NEC 430.6(A)(1)
+# - Added provenance tracking for engineering defensibility
+# - Added rated_kw/brake_kw/absorbed_kw power semantics clarity
+# - Added output_tier for tiered deliverables
+# - References electrical-basis.schema.yaml for code basis
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "load-list.schema.yaml"
+title: "Load List"
+description: |
+  Electrical load list for WWTP equipment. Contains motor nameplate data,
+  FLC/FLA calculations, duty profiles, and MCC panel assignments.
+
+  KEY DISTINCTIONS (per NEC 430.6(A)(1)):
+  - flc_table_a: From NEC 430.250 tables - used for conductor/SCPD sizing
+  - fla_nameplate_a: From motor nameplate - used for overload settings
+
+  POWER SEMANTICS:
+  - rated_kw: Motor nameplate kW (mechanical output)
+  - brake_kw: Shaft power at duty point
+  - absorbed_kw: Electrical input = brake_kw / efficiency
+
+type: object
+required:
+  - version
+  - project_id
+  - electrical_basis
+  - loads
+
+properties:
+  version:
+    type: string
+    const: "2.0.0"
+    description: "Schema version"
+
+  project_id:
+    type: string
+    description: "Project identifier from equipment-list"
+
+  electrical_basis:
+    type: object
+    description: "Project electrical design basis - see electrical-basis.schema.yaml for full definition"
+    required:
+      - motor_standard
+      - voltage_system
+    properties:
+      # Code basis (P0 requirement - NEC/IEC are separate pathways)
+      code_basis:
+        type: object
+        description: "Electrical code standard - NEC and IEC are SEPARATE code pathways"
+        properties:
+          standard:
+            type: string
+            enum: ["NEC", "IEC"]
+            description: "Primary electrical code (NEC or IEC)"
+          nec_edition:
+            type: string
+            enum: ["2020", "2023", "2026"]
+            description: "NEC edition if standard=NEC"
+          jurisdiction_ahj:
+            type: string
+            description: "Authority Having Jurisdiction"
+          iec_basis:
+            type: string
+            description: "IEC basis if standard=IEC (e.g., 'IEC 60364 + BS 7671')"
+
+      motor_standard:
+        type: string
+        enum: ["IEC", "NEMA"]
+        description: "Motor standard for FLA tables and efficiency classes"
+
+      cable_standard:
+        type: string
+        enum: ["IEC", "NEC"]
+        description: "Cable sizing standard"
+
+      voltage_system:
+        type: object
+        required:
+          - lv_voltage
+          - frequency
+        properties:
+          lv_voltage:
+            type: number
+            enum: [208, 220, 230, 240, 380, 400, 415, 440, 460, 480, 575, 600]
+            description: "Low voltage motor supply (V)"
+          mv_voltage:
+            type: number
+            enum: [2300, 3300, 4160, 6600, 11000, 13200, 13800]
+            description: "Medium voltage motor supply (V) - if applicable"
+          frequency:
+            type: number
+            enum: [50, 60]
+            description: "Supply frequency (Hz)"
+          system_grounding:
+            type: string
+            enum: ["TN-S", "TN-C-S", "TT", "IT", "solidly_grounded", "resistance_grounded"]
+            description: "System grounding configuration"
+
+      # Available fault current (P0 requirement)
+      available_fault_current:
+        type: object
+        description: "Available fault current - PRELIMINARY unless verified"
+        properties:
+          at_transformer_secondary_ka:
+            type: number
+            description: "Fault current at transformer secondary (kA)"
+          at_mcc_bus_ka:
+            type: number
+            description: "Fault current at MCC bus (kA)"
+          source:
+            type: string
+            enum: ["utility_letter", "short_circuit_study", "calculated_from_transformer", "assumption", "conservative_default", "verified"]
+          verified:
+            type: boolean
+            default: false
+          warning:
+            type: string
+            description: "Warning if values are preliminary"
+
+  # Output tier tracking (P0 requirement)
+  output_tier:
+    type: object
+    description: "Output tier for tiered deliverables with hard gates"
+    properties:
+      tier:
+        type: integer
+        enum: [1, 2, 3]
+        description: "1=Load Study, 2=Preliminary Schedule, 3=Code-Compliant"
+      tier_name:
+        type: string
+        enum: ["Load Study", "Preliminary Schedule", "Code-Compliant"]
+      completeness_pct:
+        type: number
+        description: "Data completeness percentage"
+      disclaimers:
+        type: array
+        items:
+          type: string
+        description: "Applicable disclaimers for this tier"
+
+  loads:
+    type: array
+    description: "Individual equipment loads"
+    items:
+      $ref: "#/$defs/load_item"
+
+  mcc_panels:
+    type: array
+    description: "MCC/Panel summaries"
+    items:
+      $ref: "#/$defs/mcc_panel"
+
+  energy_summary:
+    type: object
+    description: "Daily energy consumption summary"
+    properties:
+      total_connected_kw:
+        type: number
+        description: "Sum of installed_kw"
+      total_running_kw:
+        type: number
+        description: "Sum of running_kw"
+      total_demand_kw:
+        type: number
+        description: "Sum of demand_kw with diversity"
+      daily_kwh:
+        type: number
+        description: "Total kWh/day"
+      specific_energy_kwh_m3:
+        type: number
+        description: "Specific energy consumption (kWh/m3)"
+
+$defs:
+  load_item:
+    type: object
+    description: "Individual equipment load entry"
+    required:
+      - equipment_tag
+      - description
+      - installed_kw
+      - voltage_v
+      - phases
+      - feeder_type
+      - mcc_panel
+    properties:
+      # Equipment Identity
+      equipment_tag:
+        type: string
+        pattern: "^[0-9]{3}-[A-Z]{1,5}-[0-9]{2,4}[A-Z]?$"
+        description: "FK to equipment-list"
+      description:
+        type: string
+        description: "Equipment description"
+      process_unit_type:
+        type: string
+        description: "FK to process-unit-taxonomy"
+      area:
+        type: integer
+        minimum: 100
+        maximum: 900
+        description: "Area code (100-900)"
+      equipment_type:
+        type: string
+        description: "Equipment code (P, B, AG, etc.)"
+
+      # Motor Nameplate Data - POWER SEMANTICS (P0 requirement)
+      # rated_kw = Motor nameplate kW (mechanical output for IEC, convert HP for NEMA)
+      # brake_kw = Shaft power at duty point
+      # absorbed_kw = Electrical input = brake_kw / efficiency
+      # installed_kw is DEPRECATED - use rated_kw
+
+      rated_kw:
+        type: number
+        minimum: 0
+        description: |
+          Motor nameplate kW (mechanical output).
+          For IEC motors: kW from nameplate
+          For NEMA motors: Convert HP × 0.746
+          This is the FLC table lookup value.
+
+      installed_kw:
+        type: number
+        minimum: 0
+        description: "DEPRECATED - use rated_kw. Nameplate motor power."
+      voltage_v:
+        type: number
+        description: "Motor rated voltage (e.g., 400, 480)"
+      phases:
+        type: integer
+        enum: [1, 3]
+        description: "Number of phases"
+      frequency_hz:
+        type: number
+        enum: [50, 60]
+        description: "Supply frequency"
+      motor_poles:
+        type: integer
+        enum: [2, 4, 6, 8]
+        description: "Number of motor poles"
+      rpm:
+        type: integer
+        description: "Rated speed (synchronous - slip)"
+      efficiency_pct:
+        type: number
+        minimum: 0
+        maximum: 100
+        description: "Motor efficiency as % (e.g., 95.0)"
+      pf:
+        type: number
+        minimum: 0.5
+        maximum: 1.0
+        description: "Power factor (0.7-0.95 typical)"
+      efficiency_class:
+        type: string
+        enum: ["IE1", "IE2", "IE3", "IE4", "NEMA-STD", "NEMA-ENERGY", "NEMA-PREMIUM"]
+        description: "IEC or NEMA efficiency class"
+      service_factor:
+        type: number
+        enum: [1.0, 1.15]
+        description: "Service factor (1.0 IEC, 1.15 NEMA)"
+      frame_size:
+        type: string
+        description: "Motor frame size (IEC or NEMA)"
+      enclosure:
+        type: string
+        enum: ["IP55", "IP65", "ODP", "TEFC", "TENV", "TEAO", "EXPL"]
+        description: "Motor enclosure rating"
+
+      # FLC vs FLA Distinction (P0 requirement per NEC 430.6(A)(1))
+      # CRITICAL: These are different values used for different purposes!
+      flc_table_a:
+        type: number
+        description: |
+          Full Load Current from CODE TABLES (NEC 430.250/430.248 or IEC 60034).
+          USE FOR: NEC 430.22 (branch conductor), 430.24 (feeder conductor),
+          430.52 (branch SCPD), 430.62 (feeder SCPD)
+          This is typically HIGHER than nameplate FLA for code conservatism.
+
+      fla_nameplate_a:
+        type: number
+        description: |
+          Full Load Amps from MOTOR NAMEPLATE.
+          USE FOR: NEC 430.32 (overload protection settings)
+          This is the actual motor current, may be lower than table FLC.
+
+      # Legacy field for backwards compatibility
+      fla:
+        type: number
+        description: "DEPRECATED - use flc_table_a. Full Load Amps from tables."
+
+      lra:
+        type: number
+        description: "Locked Rotor Amps"
+
+      lra_multiplier:
+        type: number
+        default: 6.0
+        description: "LRA/FLA ratio (NEMA Design B = 6)"
+
+      fla_source:
+        type: string
+        enum: ["NEC-430.250", "NEC-430.248", "IEC-60034", "nameplate", "calculated"]
+        description: "Source of FLA/FLC value"
+
+      # Provenance tracking (P0 requirement)
+      flc_provenance:
+        type: object
+        description: "Source and verification status of FLC value"
+        properties:
+          source:
+            type: string
+            enum: ["table", "nameplate", "vendor_datasheet", "assumption", "calculated"]
+          selection_stage:
+            type: string
+            enum: ["preliminary_generic", "manufacturer_specific_final"]
+          verified:
+            type: boolean
+            default: false
+          notes:
+            type: string
+
+      # Feeder/Starter
+      feeder_type:
+        type: string
+        description: "FK to feeder_types.yaml (DOL/VFD/VFD-EXT/SOFT-STARTER/VENDOR/AODD/METERING)"
+      starter_type:
+        type: string
+        description: "IEC contactor frame (00-6) or NEMA starter size (00-6)"
+      overload_class:
+        type: string
+        enum: ["Class 5", "Class 10", "Class 20", "Class 30"]
+        default: "Class 10"
+        description: "Overload relay trip class"
+
+      # VFD/ASD Overrides (P2 requirement per Phase 3)
+      # Per-load overrides for VFD sizing when catalog values not available
+      vfd_overrides:
+        type: object
+        description: "VFD-specific overrides (for feeder_type=VFD)"
+        properties:
+          vfd_input_current_a:
+            type: number
+            description: "VFD rated input current (A) - overrides catalog"
+          vfd_max_ocpd_a:
+            type: number
+            description: "VFD max branch circuit SCPD (A) - from VFD marking"
+          vfd_sccr_ka:
+            type: number
+            description: "VFD SCCR rating (kA) - with recommended fuse"
+          vfd_manufacturer:
+            type: string
+            description: "VFD manufacturer for catalog lookup"
+          vfd_series:
+            type: string
+            description: "VFD series for catalog lookup"
+          vfd_frame:
+            type: string
+            description: "Selected VFD frame"
+          vfd_markings:
+            type: object
+            properties:
+              suitable_for_output_motor_conductor_protection:
+                type: boolean
+                description: "VFD marked per NEC 430.130(A)(1) Exception"
+          thd_factor:
+            type: number
+            minimum: 1.0
+            maximum: 1.5
+            default: 1.0
+            description: "Harmonic derating factor for conductor sizing (1.1-1.3 typical)"
+          override_source:
+            type: string
+            enum: ["vendor_datasheet", "project_spec", "assumption"]
+            description: "Source of override values"
+
+      # Duty Point & Running Profile - POWER SEMANTICS (P0 requirement)
+      brake_kw:
+        type: number
+        description: |
+          Shaft power (mechanical output) at duty point.
+          Calculated from pump/blower/mixer equations based on
+          actual operating conditions (flow, head, pressure).
+
+      absorbed_kw:
+        type: number
+        description: |
+          Electrical power absorbed by motor.
+          absorbed_kw = brake_kw / (efficiency_pct / 100)
+          This is what the motor draws from the electrical system.
+      duty_cycle:
+        type: string
+        enum: ["continuous", "intermittent", "batch", "standby"]
+        description: "Operating duty cycle"
+      running_hours_per_day:
+        type: number
+        minimum: 0
+        maximum: 24
+        description: "Expected running hours per day"
+      load_factor:
+        type: number
+        minimum: 0
+        maximum: 1.0
+        description: "Average load as fraction of rated (VFD average speed)"
+      diversity_factor:
+        type: number
+        minimum: 0
+        maximum: 1.0
+        description: "Derived from quantity_note (2W+1S -> 0.67)"
+      quantity:
+        type: integer
+        minimum: 1
+        description: "Total quantity including standby"
+      quantity_note:
+        type: string
+        description: "Working/standby notation (e.g., '2W+1S')"
+      running_kw:
+        type: number
+        description: "absorbed_kw * load_factor"
+      demand_kw:
+        type: number
+        description: "running_kw * diversity_factor"
+      daily_kwh:
+        type: number
+        description: "running_kw * running_hours_per_day"
+
+      # Panel Assignment
+      mcc_panel:
+        type: string
+        description: "Parent MCC/panel tag (e.g., MCC-200)"
+
+      # Traceability
+      duty_point_source:
+        type: string
+        description: "Path to source sizing artifact"
+      notes:
+        type: string
+        description: "Additional notes"
+
+  mcc_panel:
+    type: object
+    description: "MCC Panel aggregated summary with NEC-compliant sizing"
+    required:
+      - panel_tag
+      - connected_kw
+      - running_kw
+      - demand_kw
+    properties:
+      panel_tag:
+        type: string
+        description: "Panel identifier (e.g., MCC-100, LCP-200)"
+      location:
+        type: string
+        description: "Physical location"
+      area:
+        type: integer
+        description: "Area code this panel serves"
+      supply_voltage:
+        type: number
+        description: "Panel supply voltage (V)"
+
+      # Load Aggregation
+      connected_kw:
+        type: number
+        description: "Sum of rated_kw for all loads"
+      running_kw:
+        type: number
+        description: "Sum of running_kw for all loads"
+      demand_kw:
+        type: number
+        description: "Sum of demand_kw with panel diversity"
+      panel_diversity:
+        type: number
+        minimum: 0.5
+        maximum: 1.0
+        description: "Panel-level diversity factor"
+      demand_kva:
+        type: number
+        description: "demand_kw / average_pf"
+      demand_amps:
+        type: number
+        description: "demand_kva * 1000 / (sqrt(3) * voltage)"
+
+      # NEC-Compliant Sizing (P1 additions)
+      feeder_conductor_min_a:
+        type: number
+        description: |
+          Minimum feeder conductor ampacity per NEC 430.24:
+          125% × largest motor FLC + Σ(other motor FLCs)
+
+      feeder_ocpd_max_a:
+        type: number
+        description: |
+          Maximum feeder OCPD rating per NEC 430.62:
+          Largest motor branch SCPD + Σ(other motor FLCs)
+
+      # Feeder counts
+      feeder_counts:
+        type: object
+        properties:
+          dol:
+            type: integer
+            default: 0
+          vfd:
+            type: integer
+            default: 0
+          soft_starter:
+            type: integer
+            default: 0
+          vendor:
+            type: integer
+            default: 0
+
+      # Sizing
+      main_breaker_a:
+        type: number
+        description: "Selected main breaker rating (A) ≤ feeder_ocpd_max"
+      bus_rating:
+        type: string
+        enum: ["400A", "630A", "800A", "1000A", "1600A", "2000A", "2500A", "3200A"]
+        description: "Bus bar rating ≥ feeder_conductor_min"
+      incoming_cable_size:
+        type: string
+        description: "Incoming feeder cable size"
+
+      # SCCR/Fault Current (P3 additions)
+      available_fault_current_ka:
+        type: number
+        description: "Available fault current at MCC bus (kA)"
+      lineup_sccr_ka:
+        type: number
+        description: |
+          MCC lineup SCCR rating (kA).
+          Per UL 845: May be manufacturer-tested combination rating
+          or preliminary worst-case (min of bucket SCCRs).
+      sccr_source:
+        type: string
+        enum: ["manufacturer_tested", "preliminary_worst_case"]
+        description: "Source of lineup SCCR rating"
+      sccr_compliant:
+        type: boolean
+        description: "Whether lineup SCCR ≥ available fault current"
+
+      # Physical Layout
+      section_count:
+        type: integer
+        description: "Number of vertical sections"
+      bucket_count:
+        type: integer
+        description: "Total number of buckets"
+      spare_bucket_count:
+        type: integer
+        description: "Number of spare buckets"
+      total_height_mm:
+        type: number
+        description: "Total MCC height in mm"
+      unit_type:
+        type: string
+        enum: ["FIXED", "WITHDRAWABLE"]
+        description: "MCC unit construction type"
+
+      # IEC 61439 specific
+      rated_diversity_factor:
+        type: number
+        minimum: 0.7
+        maximum: 1.0
+        description: "IEC 61439 rated diversity factor (RDF)"
+
+# Example
+examples:
+  - version: "1.0.0"
+    project_id: "PRJ-2025-001-MBR-12MLD"
+    electrical_basis:
+      motor_standard: "IEC"
+      cable_standard: "IEC"
+      voltage_system:
+        lv_voltage: 400
+        frequency: 50
+    loads:
+      - equipment_tag: "200-B-01A"
+        description: "Aeration Blower A"
+        process_unit_type: "secondary_treatment.aerobic_biological_treatment.aeration_tank"
+        area: 200
+        equipment_type: "B"
+        installed_kw: 110
+        voltage_v: 400
+        phases: 3
+        frequency_hz: 50
+        motor_poles: 2
+        efficiency_pct: 95.5
+        pf: 0.88
+        efficiency_class: "IE3"
+        service_factor: 1.0
+        fla: 196
+        lra: 1176
+        lra_multiplier: 6
+        fla_source: "IEC-60034"
+        feeder_type: "VFD"
+        starter_type: "VFD Frame 6"
+        overload_class: "Class 10"
+        brake_kw: 95
+        absorbed_kw: 99.5
+        duty_cycle: "continuous"
+        running_hours_per_day: 24
+        load_factor: 0.70
+        diversity_factor: 0.67
+        quantity: 3
+        quantity_note: "2W+1S"
+        running_kw: 69.6
+        demand_kw: 46.6
+        daily_kwh: 1671
+        mcc_panel: "MCC-200"
+    mcc_panels:
+      - panel_tag: "MCC-200"
+        area: 200
+        supply_voltage: 400
+        connected_kw: 330
+        running_kw: 209
+        demand_kw: 140
+        panel_diversity: 0.8
+        demand_kva: 159
+        demand_amps: 230
+        feeder_counts:
+          dol: 5
+          vfd: 8
+          soft_starter: 0
+          vendor: 1
+        main_breaker_a: 400
+        bus_rating: "630A"
+    energy_summary:
+      total_connected_kw: 850
+      total_running_kw: 510
+      total_demand_kw: 425
+      daily_kwh: 12240
+      specific_energy_kwh_m3: 1.02

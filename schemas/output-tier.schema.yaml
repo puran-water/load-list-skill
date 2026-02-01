@@ -1,0 +1,328 @@
+# Output Tier Schema
+# Defines tiered output system with hard gates for engineering deliverables.
+#
+# Source: Codex Plan - P0 Requirements
+# Purpose: Prevent release of incomplete/preliminary data as final deliverables
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "output-tier.schema.yaml"
+title: "Output Tier Definitions"
+description: |
+  Tiered output system with hard gates.
+  Each output artifact includes an output_tier field.
+  Downstream tools check tier before consuming.
+
+  Tier 1: Load Study - Always available
+  Tier 2: Preliminary Schedule - Requires motor data ≥80% complete
+  Tier 3: Code-Compliant - All inputs complete and verified
+
+type: object
+
+properties:
+  output_tiers:
+    type: object
+    description: "Output tier definitions and gate conditions"
+    additionalProperties: false
+    properties:
+
+      tier_1:
+        type: object
+        description: "Load Study tier - always available"
+        properties:
+          name:
+            const: "Load Study"
+          description:
+            type: string
+            default: |
+              Preliminary load summary for planning purposes.
+              Suitable for early design, utility coordination requests,
+              and preliminary transformer sizing.
+
+          gate_condition:
+            const: "always_available"
+
+          allowed_outputs:
+            type: array
+            items:
+              type: string
+            default:
+              - "kw_totals"
+              - "energy_summary"
+              - "transformer_preliminary"
+              - "load_list_summary"
+              - "panel_load_rollup"
+
+          disclaimers:
+            type: array
+            items:
+              type: string
+            default:
+              - "PRELIMINARY - FOR PLANNING PURPOSES ONLY"
+              - "Motor data may be incomplete"
+              - "Protection sizing NOT included"
+
+      tier_2:
+        type: object
+        description: "Preliminary Schedule tier - requires motor data"
+        properties:
+          name:
+            const: "Preliminary Schedule"
+          description:
+            type: string
+            default: |
+              MCC bucket schedule suitable for equipment procurement inquiries.
+              Motor data substantially complete but may have assumptions.
+
+          gate_condition:
+            type: object
+            properties:
+              motor_data_completeness_pct:
+                type: number
+                minimum: 80
+                description: "Motor data must be ≥80% complete"
+              required_fields:
+                type: array
+                items:
+                  type: string
+                default:
+                  - "motor_rated_kw"
+                  - "voltage_v"
+                  - "feeder_type"
+                  - "fla"
+
+          allowed_outputs:
+            type: array
+            items:
+              type: string
+            default:
+              - "mcc_bucket_schedule_preliminary"
+              - "starter_sizing"
+              - "vfd_frame_sizing"
+              - "cable_sizing_preliminary"
+
+          disclaimers:
+            type: array
+            items:
+              type: string
+            default:
+              - "PRELIMINARY - VERIFY BEFORE PROCUREMENT"
+              - "Cable lengths are estimated"
+              - "SCCR validation NOT performed"
+
+      tier_3:
+        type: object
+        description: "Code-Compliant tier - final engineering deliverables"
+        properties:
+          name:
+            const: "Code-Compliant"
+          description:
+            type: string
+            default: |
+              Final MCC schedule, cable takeoff, and SCCR validation.
+              Suitable for contractor pricing and equipment orders.
+
+          gate_condition:
+            type: object
+            properties:
+              all_inputs_complete:
+                type: boolean
+                const: true
+              all_inputs_verified:
+                type: boolean
+                const: true
+              fault_current_verified:
+                type: boolean
+                const: true
+              cable_lengths_verified:
+                type: boolean
+                const: true
+              required_fields:
+                type: array
+                items:
+                  type: string
+                default:
+                  - "motor_rated_kw"
+                  - "voltage_v"
+                  - "feeder_type"
+                  - "flc_table_a"
+                  - "fla_nameplate_a"
+                  - "branch_scpd_rating_a"
+                  - "overload_setting_a"
+                  - "cable_size"
+                  - "cable_length_m"
+
+          allowed_outputs:
+            type: array
+            items:
+              type: string
+            default:
+              - "mcc_schedule_final"
+              - "cable_takeoff"
+              - "sccr_validation"
+              - "protection_schedule"
+
+          disclaimers:
+            type: array
+            items:
+              type: string
+            default: []
+
+  # Artifact output tier tracking
+  artifact_tier:
+    type: object
+    description: "Tier metadata to include in each output artifact"
+    required:
+      - tier
+      - generated_at
+    properties:
+      tier:
+        type: integer
+        enum: [1, 2, 3]
+        description: "Output tier level (1, 2, or 3)"
+
+      tier_name:
+        type: string
+        enum: ["Load Study", "Preliminary Schedule", "Code-Compliant"]
+        description: "Human-readable tier name"
+
+      generated_at:
+        type: string
+        format: date-time
+        description: "Timestamp when artifact was generated"
+
+      gate_status:
+        type: object
+        description: "Status of gate conditions"
+        properties:
+          passed:
+            type: boolean
+            description: "Whether all gate conditions were met"
+          missing_requirements:
+            type: array
+            items:
+              type: string
+            description: "List of unmet requirements"
+          completeness_pct:
+            type: number
+            description: "Data completeness percentage"
+
+      disclaimers:
+        type: array
+        items:
+          type: string
+        description: "Disclaimers that apply to this artifact"
+
+      upgrade_requirements:
+        type: array
+        items:
+          type: string
+        description: "What is needed to upgrade to next tier"
+
+# Completeness calculation rules
+$defs:
+  completeness_rules:
+    type: object
+    description: "Rules for calculating data completeness"
+    properties:
+      motor_data_fields:
+        type: array
+        description: "Fields required for motor data completeness"
+        default:
+          - field: "motor_rated_kw"
+            weight: 20
+            required: true
+          - field: "voltage_v"
+            weight: 10
+            required: true
+          - field: "frequency_hz"
+            weight: 5
+            required: true
+          - field: "motor_poles"
+            weight: 5
+            required: false
+          - field: "efficiency_class"
+            weight: 5
+            required: false
+          - field: "fla"
+            weight: 15
+            required: true
+          - field: "feeder_type"
+            weight: 15
+            required: true
+          - field: "service_factor"
+            weight: 5
+            required: false
+          - field: "brake_kw"
+            weight: 10
+            required: false
+          - field: "duty_cycle"
+            weight: 5
+            required: false
+          - field: "mcc_panel"
+            weight: 5
+            required: true
+
+      protection_data_fields:
+        type: array
+        description: "Fields required for protection data completeness"
+        default:
+          - field: "flc_table_a"
+            weight: 20
+            required: true
+          - field: "fla_nameplate_a"
+            weight: 15
+            required: true
+          - field: "branch_scpd_type"
+            weight: 15
+            required: true
+          - field: "branch_scpd_rating_a"
+            weight: 20
+            required: true
+          - field: "overload_setting_a"
+            weight: 15
+            required: true
+          - field: "overload_class"
+            weight: 5
+            required: false
+          - field: "sccr_ka"
+            weight: 10
+            required: false
+
+      cable_data_fields:
+        type: array
+        description: "Fields required for cable data completeness"
+        default:
+          - field: "cable_size"
+            weight: 30
+            required: true
+          - field: "cable_length_m"
+            weight: 30
+            required: true
+          - field: "voltage_drop_pct"
+            weight: 20
+            required: false
+          - field: "cable_route"
+            weight: 10
+            required: false
+          - field: "derating_applied"
+            weight: 10
+            required: false
+
+# Example artifact with tier metadata
+examples:
+  - artifact_tier:
+      tier: 2
+      tier_name: "Preliminary Schedule"
+      generated_at: "2026-02-01T10:30:00Z"
+      gate_status:
+        passed: true
+        missing_requirements: []
+        completeness_pct: 87
+      disclaimers:
+        - "PRELIMINARY - VERIFY BEFORE PROCUREMENT"
+        - "Cable lengths are estimated"
+        - "SCCR validation NOT performed"
+      upgrade_requirements:
+        - "Verify cable route lengths from layout"
+        - "Confirm available fault current with utility"
+        - "Verify motor nameplate data from submittals"

@@ -1,0 +1,176 @@
+# Transformer Catalog
+# Standard transformer sizes and specifications
+#
+# Standards:
+# - ANSI/IEEE C57.12 (North America)
+# - IEC 60076 (International)
+#
+# Version: 1.0.0
+# Last Updated: 2026-02-01
+
+version: "1.0.0"
+last_updated: "2026-02-01"
+
+# ============================================================================
+# ANSI/IEEE Standard kVA Ratings
+# ============================================================================
+
+ansi_standard_kva:
+  description: "ANSI/IEEE C57.12 standard transformer ratings"
+
+  dry_type:
+    description: "Dry-type transformers (indoor, ventilated)"
+    ratings_kva: [15, 25, 37.5, 50, 75, 100, 112.5, 150, 167, 200, 225, 300, 500, 750, 1000, 1500, 2000, 2500]
+    typical_impedance_pct:
+      15-50: 3.0
+      75-150: 4.5
+      167-300: 5.0
+      500-750: 5.5
+      1000-1500: 5.75
+      2000-2500: 6.0
+    notes: |
+      Dry-type preferred for indoor installations.
+      Typical impedance for modern high-efficiency units.
+
+  oil_filled:
+    description: "Oil-filled transformers (outdoor, higher ratings)"
+    ratings_kva: [25, 37.5, 50, 75, 100, 167, 250, 333, 500, 750, 1000, 1500, 2000, 2500, 3333, 5000]
+    typical_impedance_pct:
+      25-100: 2.5
+      167-333: 4.0
+      500-750: 5.0
+      1000-1500: 5.5
+      2000-3333: 5.75
+      5000: 6.5
+    notes: |
+      Oil-filled for outdoor installations and higher ratings.
+      Lower impedance than dry-type of same rating.
+
+# ============================================================================
+# IEC Standard kVA Ratings
+# ============================================================================
+
+iec_standard_kva:
+  description: "IEC 60076 standard transformer ratings (R10 series)"
+
+  dry_type:
+    description: "Dry-type transformers per IEC"
+    ratings_kva: [16, 25, 40, 63, 100, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500]
+    typical_impedance_pct:
+      16-63: 4.0
+      100-250: 5.0
+      315-630: 5.5
+      800-1250: 5.75
+      1600-2500: 6.0
+
+  oil_filled:
+    description: "Oil-filled transformers per IEC"
+    ratings_kva: [25, 40, 63, 100, 160, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000]
+    typical_impedance_pct:
+      25-100: 4.0
+      160-400: 4.5
+      500-800: 5.0
+      1000-1600: 5.5
+      2000-3150: 5.75
+      4000-5000: 6.5
+
+# ============================================================================
+# Standard Voltage Combinations
+# ============================================================================
+
+voltage_combinations:
+  north_america_60hz:
+    description: "Common North American transformer voltages"
+    combinations:
+      - primary_kv: 13.8
+        secondary_v: [480, 277/480]
+        vector_group: "Delta-Wye"
+      - primary_kv: 4.16
+        secondary_v: [480, 277/480]
+        vector_group: "Delta-Wye"
+      - primary_kv: 13.2
+        secondary_v: [480, 277/480]
+        vector_group: "Delta-Wye"
+      - primary_kv: 0.48
+        secondary_v: [208, 120/208]
+        vector_group: "Delta-Wye"
+
+  international_50hz:
+    description: "Common international transformer voltages"
+    combinations:
+      - primary_kv: 11
+        secondary_v: [400, 230/400]
+        vector_group: "Dyn11"
+      - primary_kv: 6.6
+        secondary_v: [400, 230/400]
+        vector_group: "Dyn11"
+      - primary_kv: 22
+        secondary_v: [400, 230/400]
+        vector_group: "Dyn11"
+      - primary_kv: 33
+        secondary_v: [11000]
+        vector_group: "YNd11"
+
+# ============================================================================
+# Transformer Loading Guidelines
+# ============================================================================
+
+loading_guidelines:
+  description: "Transformer loading and sizing guidelines"
+
+  loading_limits:
+    continuous: 100  # % of nameplate
+    short_time_2hr: 130
+    emergency_30min: 150
+
+  sizing_factors:
+    normal_service:
+      demand_factor: 1.0
+      growth_allowance_pct: 20
+      notes: "Size for demand load × (1 + growth%)"
+
+    critical_service:
+      demand_factor: 0.80  # Don't exceed 80% loading
+      growth_allowance_pct: 25
+      notes: "More conservative for critical loads"
+
+  efficiency_classes:
+    description: "DOE 2016 efficiency standards"
+    typical_efficiency_pct:
+      15-45: 97.0
+      50-75: 97.5
+      100-167: 98.0
+      200-500: 98.5
+      750-2500: 99.0
+
+# ============================================================================
+# Selection Notes
+# ============================================================================
+
+selection_notes: |
+  Transformer Selection Process:
+
+  1. Calculate demand load (kVA):
+     - Sum of all connected loads × demand/diversity factors
+     - Include future growth allowance (typically 20%)
+
+  2. Check motor starting:
+     - Verify voltage dip during largest motor start ≤15%
+     - May require larger transformer than demand alone
+
+  3. Select standard rating:
+     - Next standard size above calculated requirement
+     - Target 70-85% loading at design demand
+
+  4. Verify short-circuit capacity:
+     - Calculate available fault current
+     - Verify downstream equipment SCCR adequate
+
+  5. Consider efficiency:
+     - Modern high-efficiency transformers reduce losses
+     - Payback period 2-5 years typical
+
+  Impedance Notes:
+  - Higher impedance = lower fault current = smaller downstream equipment
+  - Lower impedance = better voltage regulation = less motor starting dip
+  - Typical utility requirement: 5.5-6.0% for >500 kVA

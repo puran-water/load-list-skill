@@ -1,0 +1,645 @@
+# Motor Standards Catalog
+# IEC and NEMA motor efficiency classes, frame sizes, and characteristics
+#
+# Sources:
+# - IEC 60034-30-1:2014 (Efficiency classes)
+# - NEMA MG 1-2016 (Motors and Generators)
+
+version: "1.0.0"
+
+# IEC Efficiency Classes (IE Code)
+# Based on IEC 60034-30-1:2014
+iec_efficiency_classes:
+  description: "IEC efficiency classes for three-phase induction motors"
+  notes: |
+    Applies to single-speed, three-phase cage induction motors.
+    Output power: 0.12 kW to 1000 kW
+    Voltage: up to 1000 V
+    2, 4, 6, or 8 poles
+
+  # Minimum efficiency (%) by kW and poles
+  # Based on 50 Hz operation
+  IE1:
+    name: "Standard Efficiency"
+    mandatory_regions: []
+    efficiency:
+      2_pole:
+        0.75: 72.1
+        1.1: 75.0
+        1.5: 77.2
+        2.2: 79.7
+        3: 81.5
+        4: 83.1
+        5.5: 84.7
+        7.5: 86.0
+        11: 87.6
+        15: 88.7
+        18.5: 89.3
+        22: 89.9
+        30: 90.7
+        37: 91.2
+        45: 91.7
+        55: 92.1
+        75: 92.7
+        90: 93.0
+        110: 93.3
+        132: 93.5
+        160: 93.8
+        200: 94.0
+        250: 94.3
+        315: 94.6
+        355: 94.7
+        400: 94.8
+      4_pole:
+        0.75: 72.1
+        1.1: 75.0
+        1.5: 77.2
+        2.2: 79.7
+        3: 81.5
+        4: 83.1
+        5.5: 84.7
+        7.5: 86.0
+        11: 87.6
+        15: 88.7
+        18.5: 89.3
+        22: 89.9
+        30: 90.7
+        37: 91.2
+        45: 91.7
+        55: 92.1
+        75: 92.7
+        90: 93.0
+        110: 93.3
+        132: 93.5
+        160: 93.8
+        200: 94.0
+        250: 94.3
+        315: 94.6
+        355: 94.7
+        400: 94.8
+      6_pole:
+        0.75: 70.0
+        1.1: 72.9
+        1.5: 75.2
+        2.2: 78.0
+        3: 79.8
+        4: 81.4
+        5.5: 83.1
+        7.5: 84.7
+        11: 86.4
+        15: 87.7
+        18.5: 88.6
+        22: 89.2
+        30: 90.2
+        37: 90.8
+        45: 91.4
+        55: 91.9
+        75: 92.6
+        90: 93.0
+        110: 93.3
+        132: 93.5
+        160: 93.8
+        200: 94.0
+        250: 94.2
+        315: 94.5
+        355: 94.6
+        400: 94.7
+
+  IE2:
+    name: "High Efficiency"
+    mandatory_regions: ["EU_2011", "China_2016"]
+    efficiency:
+      2_pole:
+        0.75: 77.4
+        1.1: 79.6
+        1.5: 81.3
+        2.2: 83.2
+        3: 84.6
+        4: 85.8
+        5.5: 87.0
+        7.5: 88.1
+        11: 89.4
+        15: 90.3
+        18.5: 90.9
+        22: 91.3
+        30: 92.0
+        37: 92.5
+        45: 92.9
+        55: 93.2
+        75: 93.8
+        90: 94.1
+        110: 94.3
+        132: 94.6
+        160: 94.8
+        200: 95.0
+        250: 95.2
+        315: 95.4
+        355: 95.5
+        400: 95.6
+      4_pole:
+        0.75: 79.6
+        1.1: 81.4
+        1.5: 82.8
+        2.2: 84.3
+        3: 85.5
+        4: 86.6
+        5.5: 87.7
+        7.5: 88.7
+        11: 89.8
+        15: 90.6
+        18.5: 91.2
+        22: 91.6
+        30: 92.3
+        37: 92.7
+        45: 93.1
+        55: 93.5
+        75: 94.0
+        90: 94.2
+        110: 94.5
+        132: 94.7
+        160: 94.9
+        200: 95.1
+        250: 95.3
+        315: 95.5
+        355: 95.6
+        400: 95.7
+      6_pole:
+        0.75: 75.9
+        1.1: 78.1
+        1.5: 79.8
+        2.2: 81.8
+        3: 83.3
+        4: 84.6
+        5.5: 86.0
+        7.5: 87.2
+        11: 88.7
+        15: 89.7
+        18.5: 90.4
+        22: 90.9
+        30: 91.7
+        37: 92.2
+        45: 92.7
+        55: 93.1
+        75: 93.7
+        90: 94.0
+        110: 94.3
+        132: 94.6
+        160: 94.8
+        200: 95.0
+        250: 95.2
+        315: 95.4
+        355: 95.5
+        400: 95.6
+
+  IE3:
+    name: "Premium Efficiency"
+    mandatory_regions: ["EU_2015", "USA_2010", "Canada_2012"]
+    efficiency:
+      2_pole:
+        0.75: 80.7
+        1.1: 82.7
+        1.5: 84.2
+        2.2: 85.9
+        3: 87.1
+        4: 88.1
+        5.5: 89.2
+        7.5: 90.1
+        11: 91.2
+        15: 91.9
+        18.5: 92.4
+        22: 92.7
+        30: 93.3
+        37: 93.7
+        45: 94.0
+        55: 94.3
+        75: 94.7
+        90: 95.0
+        110: 95.2
+        132: 95.4
+        160: 95.6
+        200: 95.8
+        250: 96.0
+        315: 96.0
+        355: 96.1
+        400: 96.2
+      4_pole:
+        0.75: 82.5
+        1.1: 84.1
+        1.5: 85.3
+        2.2: 86.7
+        3: 87.7
+        4: 88.6
+        5.5: 89.6
+        7.5: 90.4
+        11: 91.4
+        15: 92.1
+        18.5: 92.6
+        22: 93.0
+        30: 93.6
+        37: 93.9
+        45: 94.2
+        55: 94.6
+        75: 95.0
+        90: 95.2
+        110: 95.4
+        132: 95.6
+        160: 95.8
+        200: 96.0
+        250: 96.1
+        315: 96.2
+        355: 96.3
+        400: 96.3
+      6_pole:
+        0.75: 78.9
+        1.1: 81.0
+        1.5: 82.5
+        2.2: 84.3
+        3: 85.6
+        4: 86.8
+        5.5: 88.0
+        7.5: 89.1
+        11: 90.3
+        15: 91.2
+        18.5: 91.7
+        22: 92.2
+        30: 92.9
+        37: 93.3
+        45: 93.7
+        55: 94.1
+        75: 94.6
+        90: 94.9
+        110: 95.1
+        132: 95.4
+        160: 95.6
+        200: 95.8
+        250: 96.0
+        315: 96.0
+        355: 96.1
+        400: 96.2
+
+  IE4:
+    name: "Super Premium Efficiency"
+    mandatory_regions: []
+    efficiency:
+      2_pole:
+        0.75: 82.5
+        1.1: 84.1
+        1.5: 85.3
+        2.2: 86.7
+        3: 87.7
+        4: 88.6
+        5.5: 89.6
+        7.5: 90.4
+        11: 91.4
+        15: 92.1
+        18.5: 92.6
+        22: 93.0
+        30: 93.6
+        37: 94.0
+        45: 94.3
+        55: 94.7
+        75: 95.0
+        90: 95.2
+        110: 95.5
+        132: 95.7
+        160: 95.9
+        200: 96.1
+        250: 96.3
+        315: 96.4
+        355: 96.5
+        400: 96.6
+      4_pole:
+        0.75: 84.1
+        1.1: 85.3
+        1.5: 86.5
+        2.2: 87.7
+        3: 88.6
+        4: 89.5
+        5.5: 90.4
+        7.5: 91.1
+        11: 92.0
+        15: 92.6
+        18.5: 93.0
+        22: 93.4
+        30: 93.9
+        37: 94.2
+        45: 94.5
+        55: 94.9
+        75: 95.2
+        90: 95.4
+        110: 95.7
+        132: 95.9
+        160: 96.1
+        200: 96.2
+        250: 96.4
+        315: 96.5
+        355: 96.6
+        400: 96.6
+      6_pole:
+        0.75: 81.0
+        1.1: 82.5
+        1.5: 84.0
+        2.2: 85.6
+        3: 86.8
+        4: 87.9
+        5.5: 89.0
+        7.5: 90.0
+        11: 91.0
+        15: 91.8
+        18.5: 92.4
+        22: 92.8
+        30: 93.4
+        37: 93.8
+        45: 94.2
+        55: 94.6
+        75: 95.0
+        90: 95.2
+        110: 95.5
+        132: 95.7
+        160: 95.9
+        200: 96.1
+        250: 96.3
+        315: 96.4
+        355: 96.5
+        400: 96.6
+
+# NEMA Efficiency Classes
+nema_efficiency_classes:
+  description: "NEMA MG 1 efficiency requirements"
+  notes: |
+    NEMA Premium is equivalent to IE3
+    Applies to general purpose motors 1-500 HP
+
+  NEMA-STD:
+    name: "NEMA Standard (Pre-EPAct)"
+    mandatory: false
+
+  NEMA-ENERGY:
+    name: "Energy Efficient (EPAct 1992)"
+    mandatory: false  # Superseded by NEMA Premium
+
+  NEMA-PREMIUM:
+    name: "NEMA Premium (equivalent to IE3)"
+    mandatory: true
+    mandatory_since: "2010-12-19"
+    # Efficiency values match IE3
+
+# IEC Frame Sizes (IEC 60072-1)
+iec_frame_sizes:
+  description: "IEC motor frame sizes by power and poles"
+  notes: |
+    Standard IEC frame sizes.
+    Shaft height in mm corresponds to frame size number.
+
+  # Format: {kw: {poles: frame_size}}
+  standard:
+    0.37:
+      2: "71"
+      4: "71"
+      6: "80"
+    0.55:
+      2: "71"
+      4: "80"
+      6: "80"
+    0.75:
+      2: "80"
+      4: "80"
+      6: "90"
+    1.1:
+      2: "80"
+      4: "90"
+      6: "90"
+    1.5:
+      2: "90"
+      4: "90"
+      6: "100"
+    2.2:
+      2: "90"
+      4: "100"
+      6: "112"
+    3:
+      2: "100"
+      4: "100"
+      6: "112"
+    4:
+      2: "112"
+      4: "112"
+      6: "132"
+    5.5:
+      2: "112"
+      4: "132"
+      6: "132"
+    7.5:
+      2: "132"
+      4: "132"
+      6: "160"
+    11:
+      2: "132"
+      4: "160"
+      6: "160"
+    15:
+      2: "160"
+      4: "160"
+      6: "180"
+    18.5:
+      2: "160"
+      4: "180"
+      6: "200"
+    22:
+      2: "180"
+      4: "180"
+      6: "200"
+    30:
+      2: "200"
+      4: "200"
+      6: "225"
+    37:
+      2: "200"
+      4: "225"
+      6: "250"
+    45:
+      2: "225"
+      4: "225"
+      6: "280"
+    55:
+      2: "250"
+      4: "250"
+      6: "280"
+    75:
+      2: "280"
+      4: "280"
+      6: "315"
+    90:
+      2: "280"
+      4: "315"
+      6: "315"
+    110:
+      2: "315"
+      4: "315"
+      6: "355"
+    132:
+      2: "315"
+      4: "315"
+      6: "355"
+    160:
+      2: "315"
+      4: "355"
+      6: "355"
+    200:
+      2: "355"
+      4: "355"
+      6: "400"
+
+# NEMA Frame Sizes (NEMA MG 1)
+nema_frame_sizes:
+  description: "NEMA motor frame sizes"
+  notes: |
+    T-frame is standard since 1964.
+    Format: xxxT where xxx is shaft height in 1/4 inches.
+
+  # Format: {hp: {poles: frame_size}}
+  t_frame:
+    1:
+      2: "143T"
+      4: "143T"
+      6: "145T"
+    1.5:
+      2: "143T"
+      4: "145T"
+      6: "182T"
+    2:
+      2: "145T"
+      4: "145T"
+      6: "182T"
+    3:
+      2: "145T"
+      4: "182T"
+      6: "184T"
+    5:
+      2: "182T"
+      4: "184T"
+      6: "213T"
+    7.5:
+      2: "184T"
+      4: "213T"
+      6: "215T"
+    10:
+      2: "213T"
+      4: "215T"
+      6: "254T"
+    15:
+      2: "215T"
+      4: "254T"
+      6: "256T"
+    20:
+      2: "254T"
+      4: "256T"
+      6: "284T"
+    25:
+      2: "256T"
+      4: "284T"
+      6: "286T"
+    30:
+      2: "284T"
+      4: "286T"
+      6: "324T"
+    40:
+      2: "286T"
+      4: "324T"
+      6: "326T"
+    50:
+      2: "324T"
+      4: "326T"
+      6: "364T"
+    60:
+      2: "326T"
+      4: "364T"
+      6: "365T"
+    75:
+      2: "364T"
+      4: "365T"
+      6: "404T"
+    100:
+      2: "365T"
+      4: "404T"
+      6: "405T"
+    125:
+      2: "404T"
+      4: "405T"
+      6: "444T"
+    150:
+      2: "405T"
+      4: "444T"
+      6: "445T"
+    200:
+      2: "444T"
+      4: "445T"
+      6: "447T"
+
+# Service Factors
+service_factors:
+  description: "Motor service factor by standard"
+  notes: |
+    Service factor allows continuous operation above nameplate rating.
+    IEC motors typically rated at SF 1.0.
+    NEMA general purpose motors typically rated at SF 1.15.
+
+  IEC:
+    general_purpose: 1.0
+    notes: "IEC motors rated for continuous operation at nameplate"
+
+  NEMA:
+    general_purpose: 1.15
+    severe_duty: 1.0
+    notes: "SF 1.15 allows 15% overload with reduced life"
+
+# Synchronous Speeds
+synchronous_speeds:
+  description: "Synchronous speed (RPM) by frequency and poles"
+  50_hz:
+    2: 3000
+    4: 1500
+    6: 1000
+    8: 750
+  60_hz:
+    2: 3600
+    4: 1800
+    6: 1200
+    8: 900
+
+# Typical Slip (for calculating actual speed)
+typical_slip:
+  description: "Typical slip percentage by motor size"
+  notes: "Actual speed = synchronous × (1 - slip)"
+  by_power:
+    - kw_range: [0, 5]
+      slip_pct: 5.0
+    - kw_range: [5, 20]
+      slip_pct: 4.0
+    - kw_range: [20, 50]
+      slip_pct: 3.0
+    - kw_range: [50, 100]
+      slip_pct: 2.5
+    - kw_range: [100, 500]
+      slip_pct: 2.0
+
+# Power Factor Estimates
+power_factor_estimates:
+  description: "Typical power factor by motor size and load"
+  notes: "PF decreases at partial load"
+  by_power:
+    - kw_range: [0, 5]
+      full_load_pf: 0.80
+      half_load_pf: 0.65
+    - kw_range: [5, 20]
+      full_load_pf: 0.85
+      half_load_pf: 0.70
+    - kw_range: [20, 50]
+      full_load_pf: 0.87
+      half_load_pf: 0.75
+    - kw_range: [50, 100]
+      full_load_pf: 0.89
+      half_load_pf: 0.78
+    - kw_range: [100, 500]
+      full_load_pf: 0.90
+      half_load_pf: 0.80

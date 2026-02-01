@@ -1,0 +1,283 @@
+# Non-Process Load Allowances Catalog
+# Allowances for building services and auxiliary loads
+#
+# Use for preliminary transformer/generator sizing when detailed
+# non-process loads are not yet defined.
+#
+# Standards Reference:
+# - IEEE 241 (Gray Book) - Commercial building electrical guidelines
+# - ASHRAE 90.1 - Energy efficiency (lighting power density)
+#
+# Version: 1.0.0
+# Last Updated: 2026-02-01
+
+version: "1.0.0"
+last_updated: "2026-02-01"
+
+# ============================================================================
+# NON-PROCESS LOAD ALLOWANCES
+# ============================================================================
+# These are typical allowances as percentage of total process load.
+# Use for preliminary sizing when detailed loads not yet defined.
+
+non_process_allowances:
+  # Building services
+  hvac:
+    description: "HVAC for electrical rooms, MCC rooms, control rooms"
+    allowance_pct: 5
+    typical_range: [3, 8]
+    notes: |
+      Higher end for hot climates or large control buildings.
+      Includes: package units, split systems, exhaust fans.
+      Does NOT include process HVAC (odor control blowers, etc.)
+
+  lighting:
+    description: "Indoor + outdoor lighting"
+    allowance_pct: 3
+    typical_range: [2, 5]
+    w_per_m2_indoor: 15
+    w_per_m2_outdoor: 5
+    notes: |
+      Modern LED lighting typically 10-15 W/m² indoor.
+      Outdoor: pole lights, wall packs, flood lights.
+      Emergency lighting included in emergency generator load.
+
+  small_power:
+    description: "Receptacles, maintenance equipment"
+    allowance_pct: 2
+    typical_range: [1, 3]
+    notes: |
+      General purpose outlets, maintenance welders.
+      Does NOT include large maintenance equipment with dedicated circuits.
+
+  instrumentation:
+    description: "Analyzers, transmitters, PLC/DCS"
+    allowance_pct: 2
+    typical_range: [1, 3]
+    notes: |
+      Online analyzers (DO, pH, turbidity, chlorine).
+      Field transmitters and local panels.
+      PLC/DCS rack power (typically UPS-backed).
+
+  control_power:
+    description: "MCC control transformers, UPS"
+    allowance_pct: 1
+    typical_range: [0.5, 2]
+    notes: |
+      Control power transformers (CPT) in MCCs.
+      UPS systems for control/instrumentation.
+      SCADA servers and network equipment.
+
+  # Standard building loads (may or may not apply)
+  fire_protection:
+    description: "Fire pumps, alarms (if applicable)"
+    allowance_pct: 0
+    typical_range: [0, 5]
+    notes: |
+      Fire pump motor if required (typically 15-75 kW).
+      Fire alarm panel and devices.
+      Set to 0 if not applicable or on separate service.
+
+  security:
+    description: "CCTV, access control"
+    allowance_pct: 0.5
+    typical_range: [0.3, 1]
+    notes: |
+      CCTV cameras and DVR/NVR.
+      Access control panels and card readers.
+      Perimeter intrusion detection.
+
+  laboratory:
+    description: "On-site lab equipment"
+    allowance_pct: 0
+    typical_range: [0, 2]
+    notes: |
+      Set based on lab size and equipment.
+      Includes: fume hoods, analytical instruments, refrigerators.
+
+  compressed_air:
+    description: "Instrument air compressors"
+    allowance_pct: 0
+    typical_range: [0, 3]
+    notes: |
+      Instrument air for pneumatic actuators.
+      Plant air for maintenance.
+      Often included in process loads if significant.
+
+# ============================================================================
+# DEFAULT TOTAL ALLOWANCE
+# ============================================================================
+
+default_total_allowance:
+  description: "Sum of typical allowances for quick estimates"
+  value_pct: 15
+  composition:
+    hvac: 5
+    lighting: 3
+    small_power: 2
+    instrumentation: 2
+    control_power: 1
+    security: 0.5
+    misc: 1.5
+  notes: |
+    Use 15% as default for preliminary transformer sizing.
+    Adjust based on project-specific factors:
+    - Hot climate: +2-3% for HVAC
+    - Large control building: +2-3%
+    - On-site lab: +1-2%
+    - Fire pump required: +3-5%
+
+# ============================================================================
+# LIGHTING POWER DENSITY REFERENCE
+# ============================================================================
+# For more detailed lighting estimates
+
+lighting_power_density:
+  description: "Typical lighting power density by space type"
+  standard: "ASHRAE 90.1-2019"
+
+  spaces:
+    electrical_room:
+      w_per_m2: 12
+      w_per_ft2: 1.1
+    control_room:
+      w_per_m2: 15
+      w_per_ft2: 1.4
+    laboratory:
+      w_per_m2: 18
+      w_per_ft2: 1.7
+    office:
+      w_per_m2: 10
+      w_per_ft2: 0.9
+    storage:
+      w_per_m2: 6
+      w_per_ft2: 0.6
+    maintenance_shop:
+      w_per_m2: 15
+      w_per_ft2: 1.4
+    process_area_covered:
+      w_per_m2: 8
+      w_per_ft2: 0.7
+    outdoor_parking:
+      w_per_m2: 2
+      w_per_ft2: 0.2
+    outdoor_process_area:
+      w_per_m2: 5
+      w_per_ft2: 0.5
+
+# ============================================================================
+# HVAC LOAD ESTIMATION REFERENCE
+# ============================================================================
+
+hvac_load_estimation:
+  description: "Typical HVAC loads for electrical equipment rooms"
+
+  rule_of_thumb:
+    heat_dissipation_pct: 2.5
+    notes: |
+      Assume 2-3% of electrical equipment kW rating dissipates as heat.
+      HVAC must remove this heat plus building envelope load.
+
+  typical_loads:
+    mcc_room_small:
+      description: "MCC room <50m² (500 ft²)"
+      cooling_kw: [5, 10]
+      unit_type: "Split system or mini-split"
+    mcc_room_large:
+      description: "MCC room 50-150m²"
+      cooling_kw: [15, 30]
+      unit_type: "Package unit or split system"
+    control_building:
+      description: "Control building with SCADA"
+      w_per_m2: 100
+      notes: "Higher density due to 24/7 operation and electronics"
+    electrical_building:
+      description: "Switchgear/transformer building"
+      ventilation_only: true
+      notes: "Often ventilation only, not air conditioned"
+
+# ============================================================================
+# EMERGENCY/STANDBY GENERATOR LOADS
+# ============================================================================
+# Loads typically on emergency generator (if applicable)
+
+emergency_loads:
+  description: "Loads typically backed by emergency generator"
+
+  mandatory:
+    - "Emergency lighting (egress)"
+    - "Fire alarm system"
+    - "Emergency communication"
+    - "Exit signs"
+
+  recommended_critical:
+    - "Control system (PLC/DCS)"
+    - "SCADA and communication"
+    - "Critical analyzers"
+    - "Security system"
+    - "Sump pumps (flood protection)"
+
+  process_critical:
+    description: "Process loads that may need backup"
+    examples:
+      - "Chlorination (if required for disinfection)"
+      - "Effluent pumps (prevent overflow)"
+      - "Aeration (maintain biology - partial capacity)"
+    sizing_note: |
+      Emergency generator sizing is project-specific.
+      Typically 25-50% of normal demand load for essential services.
+      Full backup of all process loads rarely economical.
+
+# ============================================================================
+# POWER FACTOR ASSUMPTIONS
+# ============================================================================
+
+power_factor_assumptions:
+  description: "Typical power factors for non-process loads"
+
+  by_load_type:
+    lighting_led:
+      pf: 0.95
+      notes: "Modern LED drivers with PFC"
+    lighting_fluorescent:
+      pf: 0.90
+      notes: "Electronic ballasts"
+    hvac_package:
+      pf: 0.85
+      notes: "Compressor motors"
+    small_power:
+      pf: 0.80
+      notes: "Mixed resistive and motor loads"
+    ups_systems:
+      pf: 0.90
+      notes: "Modern double-conversion UPS"
+    instrumentation:
+      pf: 0.95
+      notes: "Mostly electronic, high pf"
+
+  blended_non_process:
+    pf: 0.90
+    notes: "Use for aggregate non-process load estimation"
+
+# ============================================================================
+# USAGE NOTES
+# ============================================================================
+
+usage_notes: |
+  These allowances are for PRELIMINARY sizing only.
+
+  For detailed design:
+  1. Develop actual lighting layout and calculate connected load
+  2. Size HVAC based on heat balance (equipment heat + envelope)
+  3. Enumerate instrumentation and control power loads
+  4. Include fire pump if required (check with authority)
+
+  Disclaimer:
+  Actual non-process loads vary significantly by:
+  - Climate zone
+  - Building construction
+  - Level of automation
+  - Security requirements
+  - Regulatory requirements (fire pump, etc.)
+
+  Always verify assumptions with project-specific information.

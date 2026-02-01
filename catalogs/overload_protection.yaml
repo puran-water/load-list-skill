@@ -1,0 +1,337 @@
+# Overload Protection Catalog
+# NEC 430.32 / IEC 60947-4-1 motor overload protection sizing
+#
+# Source: NFPA 70 National Electrical Code 2023, Section 430.32
+# Reference: IEC 60947-4-1 (Contactors and motor starters)
+# Version: 1.0.0
+
+version: "1.0.0"
+last_updated: "2026-02-01"
+
+# ============================================================================
+# NEC 430.32 - Continuous-Duty Motors
+# ============================================================================
+
+nec_430_32:
+  description: |
+    NEC 430.32 provides requirements for overload protection of motors.
+
+    CRITICAL DISTINCTION from 430.52:
+    - 430.32 overload sizing is based on motor NAMEPLATE FLA
+    - 430.52 SCPD sizing is based on NEC TABLE FLC
+
+    Overload protection protects the motor from damage due to
+    sustained overcurrent (not short-circuit).
+
+  # Overload sizing rules
+  sizing_rules:
+    # Motors with marked service factor ≥1.15 or temp rise ≤40°C
+    sf_1_15_or_40c:
+      description: |
+        Motors with marked service factor ≥1.15, OR
+        Motors with marked temperature rise ≤40°C
+      max_overload_pct: 125
+      basis: "Nameplate FLA"
+      formula: "Overload setting ≤ 125% × Nameplate FLA"
+      notes: |
+        Most industrial motors fall into this category.
+        Service Factor 1.15 is standard for NEMA motors.
+
+    # All other motors
+    other_motors:
+      description: "Motors with SF < 1.15 AND temp rise > 40°C"
+      max_overload_pct: 115
+      basis: "Nameplate FLA"
+      formula: "Overload setting ≤ 115% × Nameplate FLA"
+      notes: |
+        IEC motors typically have SF = 1.0.
+        More restrictive setting required.
+
+    # Exception for starting (430.32(C))
+    starting_exception:
+      description: "If 115%/125% not sufficient for motor to start and carry load"
+      sf_1_15_max_pct: 140
+      other_motors_max_pct: 130
+      notes: |
+        These higher values may be used ONLY if lower settings
+        do not permit the motor to start or carry the load.
+        Document justification for using exception.
+
+  # Separate overload device requirements
+  separate_overload_device:
+    description: "Requirements per NEC 430.32(A)(1)"
+    requirements:
+      - "Trip setting not more than 125%/115% of nameplate FLA"
+      - "Selected, rated, or installed to allow motor to start"
+      - "Shall be responsive to motor current"
+    types:
+      - "Thermal overload relay (bimetallic)"
+      - "Electronic overload relay"
+      - "Thermal protector integral with motor"
+      - "VFD with integral overload protection"
+
+  # Motors over 1 HP without integral protection (430.32(A)(2))
+  motors_without_integral:
+    description: "Motors over 1 HP without integral thermal protection"
+    requirement: "Shall have separate overload device in each phase"
+    notes: |
+      Three-phase motors require overload sensing in each phase
+      to detect single-phasing condition.
+
+  # Motors 1 HP or less (430.32(D))
+  motors_1hp_or_less:
+    description: "Motors 1 HP or less, manually started"
+    options:
+      - description: "Motor is part of approved assembly"
+        protection: "As approved"
+      - description: "Motor is continuously attended"
+        protection: "Not required"
+      - description: "Motor is on general-purpose branch circuit"
+        protection: "Per 430.32(D)(1)"
+
+# ============================================================================
+# IEC 60947-4-1 Overload Relay Classes
+# ============================================================================
+
+iec_60947_4_1_classes:
+  description: |
+    IEC 60947-4-1 defines overload relay trip classes based on
+    maximum trip time at 7.2× FLA (starting from cold state).
+
+    Lower class number = faster trip = more motor protection
+    Higher class number = longer trip = allows longer starting time
+
+  classes:
+    class_5:
+      max_trip_time_sec: 5
+      typical_applications:
+        - "Submersible pumps"
+        - "Hermetic compressors"
+        - "Motors with low thermal capacity"
+      notes: |
+        Fastest trip class. Use for motors that cannot withstand
+        extended overcurrent conditions during starting.
+
+    class_10:
+      max_trip_time_sec: 10
+      typical_applications:
+        - "General purpose motors"
+        - "Pumps (centrifugal)"
+        - "Blowers and fans"
+        - "Standard industrial applications"
+      default: true
+      notes: |
+        Standard class for most industrial motors.
+        Provides good balance of protection and starting capability.
+
+    class_10a:
+      max_trip_time_sec: 10
+      notes: |
+        IEC class with tighter tolerance than Class 10.
+        Trip time at 7.2× FLA: 2-10 seconds.
+        Common in European specifications.
+
+    class_20:
+      max_trip_time_sec: 20
+      typical_applications:
+        - "High inertia loads"
+        - "Conveyors"
+        - "Mixers and agitators"
+        - "Crushers"
+        - "Large fans"
+      notes: |
+        Use when motor has extended starting time (>10 seconds).
+        Provides longer ride-through for high-inertia starts.
+
+    class_30:
+      max_trip_time_sec: 30
+      typical_applications:
+        - "Very high inertia loads"
+        - "Crushers and grinders"
+        - "Large ball mills"
+        - "Extended acceleration requirements"
+      notes: |
+        Longest standard trip class.
+        Use only when Class 20 is insufficient for starting.
+        May require thermal derating of motor.
+
+  # Selection guidance
+  selection_guidance:
+    description: "How to select overload class"
+    factors:
+      - "Motor starting time (accelerating time)"
+      - "Load inertia (WK² or GD²)"
+      - "Starting frequency (starts per hour)"
+      - "Ambient temperature"
+      - "Motor thermal capacity"
+
+    rules:
+      - condition: "Starting time ≤ 5 seconds"
+        recommended_class: "10"
+      - condition: "Starting time 5-10 seconds"
+        recommended_class: "10 or 20"
+      - condition: "Starting time 10-20 seconds"
+        recommended_class: "20"
+      - condition: "Starting time > 20 seconds"
+        recommended_class: "30"
+
+# ============================================================================
+# VFD Integral Overload Protection
+# ============================================================================
+
+vfd_integral_overload:
+  description: |
+    VFDs (Variable Frequency Drives) typically include integral
+    overload protection, eliminating the need for a separate
+    overload relay.
+
+  per_nec_430_32_a_4:
+    description: "NEC 430.32(A)(4) - Motor overload protection by system"
+    requirement: |
+      Motor overload protection shall be permitted to be provided by
+      a drive system that senses motor current and is arranged to
+      cause automatic disconnection of the motor.
+
+  vfd_overload_features:
+    - feature: "Electronic thermal model"
+      description: "Calculates motor temperature based on I²t"
+    - feature: "Programmable trip level"
+      description: "Typically 100-150% of motor FLA"
+    - feature: "Programmable trip class"
+      description: "Class 5, 10, 20, 30 selectable"
+    - feature: "Motor thermistor input"
+      description: "Direct motor temperature sensing (PTC/NTC)"
+    - feature: "Stall detection"
+      description: "Detects locked rotor condition"
+
+  configuration:
+    motor_nameplate_current:
+      description: "Program VFD with motor nameplate FLA"
+      setting: "Motor rated current parameter"
+    overload_level:
+      description: "Set overload trip level"
+      typical_setting: "100-110% of motor FLA"
+    trip_class:
+      description: "Set electronic overload class"
+      typical_setting: "Class 10 for general purpose"
+
+# ============================================================================
+# Overload Relay Selection
+# ============================================================================
+
+overload_relay_types:
+  thermal_bimetallic:
+    description: "Traditional bimetallic thermal overload relay"
+    operating_principle: |
+      Bimetallic strips heated by motor current bend proportionally.
+      Trip mechanism activates when deflection exceeds setpoint.
+    advantages:
+      - "Simple, reliable"
+      - "No power supply required"
+      - "Low cost"
+    disadvantages:
+      - "Affected by ambient temperature"
+      - "Limited adjustment range"
+      - "No communication capability"
+    typical_adjustment_range: "0.8× to 1.0× relay rating"
+
+  electronic:
+    description: "Electronic/solid-state overload relay"
+    operating_principle: |
+      Current transformers sense motor current.
+      Microprocessor calculates thermal state and trips.
+    advantages:
+      - "Not affected by ambient temperature"
+      - "Wide adjustment range"
+      - "Communication capability"
+      - "Additional functions (phase loss, ground fault)"
+      - "Selectable trip class"
+    disadvantages:
+      - "Requires power supply"
+      - "Higher cost"
+    typical_adjustment_range: "0.4× to 1.0× relay rating"
+    additional_features:
+      - "Phase loss detection"
+      - "Phase imbalance detection"
+      - "Ground fault detection"
+      - "Jam/stall detection"
+      - "Trip history logging"
+      - "Modbus/Ethernet communication"
+
+# ============================================================================
+# Selection Logic
+# ============================================================================
+
+selection_logic:
+  description: "Overload protection selection algorithm per NEC 430.32"
+
+  steps:
+    - step: 1
+      action: "Determine motor nameplate FLA"
+      notes: "Use NAMEPLATE FLA, not NEC table FLC"
+
+    - step: 2
+      action: "Determine motor service factor"
+      check:
+        - "SF ≥ 1.15: Use 125% maximum"
+        - "SF < 1.15: Use 115% maximum"
+
+    - step: 3
+      action: "Calculate maximum overload setting"
+      formula_sf_115: "Max setting = 125% × Nameplate FLA"
+      formula_other: "Max setting = 115% × Nameplate FLA"
+
+    - step: 4
+      action: "Select overload relay with adjustment range"
+      requirement: "Relay must be adjustable to cover motor FLA"
+
+    - step: 5
+      action: "Select overload class based on starting time"
+      default: "Class 10"
+      high_inertia: "Class 20 or 30"
+
+    - step: 6
+      action: "For VFD applications, configure integral overload"
+      settings:
+        - "Motor nameplate current"
+        - "Overload level (100-125%)"
+        - "Trip class"
+
+# ============================================================================
+# Examples
+# ============================================================================
+
+examples:
+  - description: "50 HP NEMA motor, SF=1.15, DOL start"
+    motor_hp: 50
+    voltage: 460
+    fla_nameplate_a: 62  # From motor nameplate
+    service_factor: 1.15
+    max_overload_pct: 125
+    calculation: "125% × 62A = 77.5A"
+    overload_setting_a: 77
+    overload_class: "10"
+    notes: "Standard Class 10 for general purpose pump"
+
+  - description: "110 kW IEC motor, SF=1.0, VFD"
+    motor_kw: 110
+    voltage: 400
+    fla_nameplate_a: 188  # From motor nameplate
+    service_factor: 1.0
+    max_overload_pct: 115
+    calculation: "115% × 188A = 216A"
+    overload_setting_a: 188  # VFD programmed to nameplate
+    overload_class: "10"
+    protection: "VFD integral"
+    notes: "VFD provides overload protection, set to nameplate FLA"
+
+  - description: "22 kW IEC motor, high inertia mixer"
+    motor_kw: 22
+    voltage: 400
+    fla_nameplate_a: 41
+    service_factor: 1.0
+    max_overload_pct: 115
+    calculation: "115% × 41A = 47A"
+    overload_setting_a: 47
+    overload_class: "20"
+    notes: "Class 20 for extended starting time (>10 seconds)"

@@ -1,0 +1,319 @@
+# Electrical Design Basis Schema
+# Defines project-level electrical design parameters including code basis,
+# fault current, and regional standards.
+#
+# Source: Codex Plan - P0 Requirements
+# Standards: NEC 2023/2026, IEC 60364, IEEE 141/399
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "electrical-basis.schema.yaml"
+title: "Electrical Design Basis"
+description: |
+  Project-level electrical design parameters. Establishes code basis,
+  fault current assumptions, and regional standards for downstream calculations.
+
+  IMPORTANT: NEC and IEC are SEPARATE code pathways. Do not imply dual-compliance
+  from the same calculation path.
+
+type: object
+required:
+  - code_basis
+  - voltage_system
+
+properties:
+  code_basis:
+    type: object
+    description: "Electrical code and standards basis"
+    required:
+      - standard
+    properties:
+      standard:
+        type: string
+        enum: ["NEC", "IEC"]
+        description: |
+          Primary electrical code standard.
+          NEC: National Electrical Code (North America)
+          IEC: International Electrotechnical Commission standards
+
+      # NEC-specific properties
+      nec_edition:
+        type: string
+        enum: ["2020", "2023", "2026"]
+        description: "NEC edition year. Note: 2026 effective dates vary by AHJ."
+
+      jurisdiction_ahj:
+        type: string
+        description: |
+          Authority Having Jurisdiction (AHJ).
+          Example: "City of Austin", "State of California"
+          AHJ determines which NEC edition is adopted and any local amendments.
+
+      # IEC-specific properties
+      iec_basis:
+        type: string
+        description: |
+          IEC standards basis with regional variations.
+          Examples: "IEC 60364", "IEC 60364 + BS 7671", "IEC 60364 + AS/NZS 3000"
+
+      regional_variations:
+        type: array
+        items:
+          type: string
+        description: "List of regional standards or amendments applied"
+
+  motor_standard:
+    type: string
+    enum: ["IEC", "NEMA"]
+    description: |
+      Motor standard for FLA tables and efficiency classes.
+      IEC: Use IEC 60034 FLA tables, IE1-IE4 efficiency classes
+      NEMA: Use NEC 430.248/430.250 FLA tables, NEMA efficiency classes
+
+  cable_standard:
+    type: string
+    enum: ["NEC", "IEC"]
+    description: |
+      Cable sizing and installation standard.
+      NEC: NEC Article 310, AWG/kcmil sizes
+      IEC: IEC 60364-5-52, metric mm² sizes
+
+  voltage_system:
+    type: object
+    description: "Electrical distribution voltage levels"
+    required:
+      - lv_voltage
+      - frequency
+    properties:
+      lv_voltage:
+        type: number
+        enum: [208, 220, 230, 240, 380, 400, 415, 440, 460, 480, 575, 600]
+        description: "Low voltage motor supply (V)"
+
+      mv_voltage:
+        type: number
+        enum: [2300, 3300, 4160, 6600, 11000, 13200, 13800]
+        description: "Medium voltage motor supply (V) - if applicable"
+
+      frequency:
+        type: number
+        enum: [50, 60]
+        description: "Supply frequency (Hz)"
+
+      system_grounding:
+        type: string
+        enum: ["TN-S", "TN-C-S", "TT", "IT", "solidly_grounded", "resistance_grounded", "ungrounded"]
+        description: |
+          System grounding configuration.
+          IEC designations: TN-S, TN-C-S, TT, IT
+          NEMA designations: solidly_grounded, resistance_grounded, ungrounded
+
+  available_fault_current:
+    type: object
+    description: |
+      Available fault current at various points in the distribution system.
+      PRELIMINARY values if not from utility coordination or short-circuit study.
+    properties:
+      at_service_entrance_ka:
+        type: number
+        description: "Available fault current from utility at service entrance (kA)"
+
+      at_transformer_secondary_ka:
+        type: number
+        description: "Available fault current at transformer secondary (kA)"
+
+      at_main_switchboard_ka:
+        type: number
+        description: "Available fault current at main switchboard (kA)"
+
+      at_mcc_bus_ka:
+        type: number
+        description: "Available fault current at MCC bus (kA) - per MCC"
+
+      source:
+        type: string
+        enum: ["utility_letter", "short_circuit_study", "calculated_from_transformer", "assumption", "conservative_default", "verified"]
+        description: "Source of fault current values"
+
+      verified:
+        type: boolean
+        default: false
+        description: "Whether values have been verified by utility or study"
+
+      warning:
+        type: string
+        description: "Warning message if values are preliminary"
+
+  transformer_data:
+    type: object
+    description: "Utility/service transformer data for fault current calculation"
+    properties:
+      rating_kva:
+        type: number
+        description: "Transformer kVA rating"
+
+      impedance_pct:
+        type: number
+        description: "Transformer impedance percentage (typical 5.5-6.0%)"
+
+      primary_voltage:
+        type: number
+        description: "Primary voltage (kV or V)"
+
+      secondary_voltage:
+        type: number
+        description: "Secondary voltage (V)"
+
+      vector_group:
+        type: string
+        description: "Vector group (IEC: Dyn11, YNd11; ANSI: Delta-Wye)"
+
+  design_margins:
+    type: object
+    description: "Design safety margins and growth allowances"
+    properties:
+      future_growth_pct:
+        type: number
+        default: 20
+        minimum: 0
+        maximum: 50
+        description: "Future load growth allowance percentage"
+
+      conductor_safety_margin:
+        type: number
+        default: 1.25
+        description: "Conductor sizing safety margin multiplier"
+
+      breaker_safety_margin:
+        type: number
+        default: 1.25
+        description: "Breaker sizing safety margin multiplier"
+
+# Assumption tracking template (for inclusion in other schemas)
+$defs:
+  assumption_tracking:
+    type: object
+    description: |
+      Machine-readable assumption tracking.
+      Apply to any assumed value to propagate validation flags.
+    properties:
+      value:
+        description: "The assumed value"
+
+      basis:
+        type: string
+        description: "Basis for assumption (e.g., 'Typical same-building motor')"
+
+      source:
+        type: string
+        enum: ["table", "nameplate", "vendor_datasheet", "assumption", "calculated", "utility_letter"]
+        description: "Source of the value"
+
+      verified:
+        type: boolean
+        default: false
+        description: "Whether value has been verified"
+
+      takeoff_ready:
+        type: boolean
+        default: false
+        description: |
+          If false, propagates "NOT FOR TAKEOFF" flag.
+          Cable lengths, quantities require layout verification.
+
+      sccr_ready:
+        type: boolean
+        default: false
+        description: |
+          If false, propagates "NOT FOR SCCR VALIDATION" flag.
+          Fault current and SCCR require study verification.
+
+  provenance:
+    type: object
+    description: |
+      Selection scope and provenance tracking.
+      Track source and stage of each value for engineering defensibility.
+    properties:
+      source:
+        type: string
+        enum: ["table", "nameplate", "vendor_datasheet", "assumption", "calculated"]
+        description: "Source of the value"
+
+      selection_stage:
+        type: string
+        enum: ["preliminary_generic", "manufacturer_specific_final"]
+        description: |
+          preliminary_generic: Initial selection from generic tables
+          manufacturer_specific_final: Final selection with specific equipment
+
+      notes:
+        type: string
+        description: "Additional notes on selection basis"
+
+      timestamp:
+        type: string
+        format: date-time
+        description: "When this value was determined"
+
+      verified_by:
+        type: string
+        description: "Engineer who verified the value"
+
+# Example
+examples:
+  - code_basis:
+      standard: "NEC"
+      nec_edition: "2023"
+      jurisdiction_ahj: "City of Austin, TX"
+
+    motor_standard: "NEMA"
+    cable_standard: "NEC"
+
+    voltage_system:
+      lv_voltage: 480
+      frequency: 60
+      system_grounding: "solidly_grounded"
+
+    available_fault_current:
+      at_service_entrance_ka: 25
+      at_transformer_secondary_ka: 22
+      at_main_switchboard_ka: 18
+      source: "utility_letter"
+      verified: true
+
+    transformer_data:
+      rating_kva: 1000
+      impedance_pct: 5.75
+      primary_voltage: 13800
+      secondary_voltage: 480
+      vector_group: "Delta-Wye"
+
+    design_margins:
+      future_growth_pct: 20
+      conductor_safety_margin: 1.25
+      breaker_safety_margin: 1.25
+
+  - code_basis:
+      standard: "IEC"
+      iec_basis: "IEC 60364 + BS 7671"
+      regional_variations: ["BS 7671:2018 Amendment 2"]
+
+    motor_standard: "IEC"
+    cable_standard: "IEC"
+
+    voltage_system:
+      lv_voltage: 400
+      frequency: 50
+      system_grounding: "TN-S"
+
+    available_fault_current:
+      at_transformer_secondary_ka: 20
+      source: "calculated_from_transformer"
+      verified: false
+      warning: "PRELIMINARY - verify with utility coordination"
+
+    transformer_data:
+      rating_kva: 800
+      impedance_pct: 6.0
+      primary_voltage: 11000
+      secondary_voltage: 400
+      vector_group: "Dyn11"

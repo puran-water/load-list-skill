@@ -1,0 +1,199 @@
+# Protection Device Schema
+# Minimal coordination hooks for SCPD (Short Circuit Protective Device) data
+#
+# Purpose: Keep data model "study-ready" without committing to full
+# ETAP/SKM-like TCC engine. Captures enough data for:
+# - SCCR validation
+# - Coordination output points
+# - Future study integration
+#
+# Standards Reference:
+# - NEC Article 240 (Overcurrent Protection)
+# - NEC Article 430 (Motor Circuits)
+# - UL 489 (Molded Case Circuit Breakers)
+# - UL 248 (Fuses)
+# - IEC 60947-2 (Circuit Breakers)
+# - IEC 60269 (Fuses)
+#
+# Version: 1.0.0
+# Last Updated: 2026-02-01
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://load-list-skill/schemas/protection-device.schema.yaml"
+
+title: "Protection Device Schema"
+description: "Schema for overcurrent protective devices (OCPD/SCPD)"
+type: object
+
+properties:
+  device_tag:
+    type: string
+    description: "Device identification tag (e.g., CB-200-01)"
+
+  device_type:
+    type: string
+    enum: [fuse, mccb, mpcb, icb, mcp]
+    description: |
+      fuse: Fusible switch or fuse holder
+      mccb: Molded Case Circuit Breaker
+      mpcb: Motor Protection Circuit Breaker (IEC)
+      icb: Insulated Case Circuit Breaker
+      mcp: Motor Circuit Protector (instantaneous only)
+
+  curve_family:
+    type: string
+    enum: [inverse_time, instantaneous_only, electronic, dual_element, current_limiting]
+    description: |
+      inverse_time: Standard thermal-magnetic MCCB
+      instantaneous_only: MCP, magnetic only
+      electronic: Electronic trip unit (adjustable)
+      dual_element: Time-delay fuse (Class RK1, J)
+      current_limiting: Current-limiting fuse or breaker
+
+  # Manufacturer information (optional)
+  manufacturer:
+    type: string
+    description: "Device manufacturer"
+  series:
+    type: string
+    description: "Product series/model"
+  catalog_number:
+    type: string
+    description: "Manufacturer catalog number"
+
+  # Frame and trip ratings
+  frame_rating_a:
+    type: number
+    minimum: 0
+    description: "Frame size in Amps (e.g., 100A frame)"
+
+  trip_rating_a:
+    type: number
+    minimum: 0
+    description: "Trip/sensor rating in Amps (e.g., 60A trip in 100A frame)"
+
+  # Fuse-specific
+  fuse_class:
+    type: string
+    enum: [J, RK1, RK5, CC, T, L, G, H, K]
+    description: |
+      J: Class J (fast-acting, current-limiting)
+      RK1: Class RK1 (time-delay, current-limiting)
+      RK5: Class RK5 (time-delay, not current-limiting)
+      CC: Class CC (compact, current-limiting)
+      T: Class T (compact, high-interrupt)
+      L: Class L (high amperage, 601-6000A)
+      G: Class G (general purpose, current-limiting)
+      H: Class H (renewable, not current-limiting)
+      K: Class K (fast-acting, limited current-limiting)
+
+  fuse_current_rating_a:
+    type: number
+    minimum: 0
+    description: "Fuse current rating in Amps"
+
+  # Trip unit settings (for adjustable devices)
+  trip_settings:
+    type: object
+    properties:
+      Ir:
+        type: number
+        description: "Overload pickup (A) - long-time setting"
+      tr:
+        type: number
+        description: "Overload time delay (sec)"
+      Isd:
+        type: number
+        description: "Short-time pickup (A)"
+      tsd:
+        type: number
+        description: "Short-time delay (sec)"
+      Ii:
+        type: number
+        description: "Instantaneous pickup (A)"
+      Ig:
+        type: number
+        description: "Ground fault pickup (A)"
+      tg:
+        type: number
+        description: "Ground fault delay (sec)"
+
+  # Interrupt ratings
+  interrupt_rating_ka:
+    type: number
+    minimum: 0
+    description: "Interrupting rating at system voltage (kA rms sym)"
+
+  sccr_ka:
+    type: number
+    minimum: 0
+    description: "Short-circuit current rating for assembly use (kA)"
+
+  # IEC ratings (if applicable)
+  iec_ratings:
+    type: object
+    properties:
+      Icu:
+        type: number
+        description: "Ultimate breaking capacity (kA)"
+      Ics:
+        type: number
+        description: "Service breaking capacity (kA)"
+      Icw:
+        type: number
+        description: "Short-time withstand (kA for 1 sec)"
+      Icm:
+        type: number
+        description: "Making capacity (kA peak)"
+
+  # Coordination data for study integration
+  coordination_data:
+    type: object
+    description: "Data points for coordination studies"
+    properties:
+      inrush_multiple:
+        type: number
+        description: "Expected inrush current multiple (×FLC)"
+      expected_start_time_sec:
+        type: number
+        description: "Expected motor start time (seconds)"
+      available_fault_at_device_ka:
+        type: number
+        description: "Available fault current at this device location (kA)"
+      let_through_i2t:
+        type: number
+        description: "Let-through energy (A²s) for current-limiting devices"
+      minimum_melt_time_a:
+        type: number
+        description: "Minimum melt current for fuses (A)"
+
+  # Provenance
+  provenance:
+    $ref: "electrical-basis.schema.yaml#/$defs/provenance"
+
+# Example instances
+examples:
+  - device_tag: "CB-200-01"
+    device_type: "mccb"
+    curve_family: "inverse_time"
+    manufacturer: "Eaton"
+    series: "GHB"
+    frame_rating_a: 100
+    trip_rating_a: 70
+    interrupt_rating_ka: 22
+    sccr_ka: 22
+    coordination_data:
+      available_fault_at_device_ka: 18
+      inrush_multiple: 6
+
+  - device_tag: "FU-200-01"
+    device_type: "fuse"
+    curve_family: "dual_element"
+    manufacturer: "Bussmann"
+    series: "LPJ"
+    fuse_class: "J"
+    fuse_current_rating_a: 100
+    interrupt_rating_ka: 200
+    sccr_ka: 200
+    coordination_data:
+      available_fault_at_device_ka: 18

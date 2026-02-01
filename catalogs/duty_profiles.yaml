@@ -1,0 +1,420 @@
+# Duty Profiles Catalog
+# Running hours, load factors, and diversity factors by equipment type
+#
+# Used to estimate energy consumption for load list calculations
+
+version: "1.0.0"
+
+# Equipment Duty Profiles by Process Unit Type
+# Key: {equipment_type}.{process_unit_type} or just {equipment_type}
+equipment_profiles:
+  description: |
+    Default running hours and load factors by equipment type and process unit.
+    Override with actual operating data when available.
+
+  # Pumps (P)
+  pumps:
+    # Lift station / raw sewage
+    lift_station:
+      duty_cycle: "intermittent"
+      running_hours_per_day: 16
+      load_factor_vfd: 0.70
+      load_factor_dol: 0.95
+      notes: "Variable inflow, wet well level control"
+
+    # RAS/MLSS recirculation
+    ras_recirculation:
+      duty_cycle: "continuous"
+      running_hours_per_day: 24
+      load_factor_vfd: 0.80
+      load_factor_dol: 0.95
+      notes: "Continuous recirculation, flow ratio control"
+
+    # WAS/sludge transfer
+    was_transfer:
+      duty_cycle: "batch"
+      running_hours_per_day: 8
+      load_factor_vfd: 0.85
+      load_factor_dol: 0.95
+      notes: "Batch wasting, timer or flow-paced"
+
+    # Permeate/effluent
+    permeate:
+      duty_cycle: "continuous"
+      running_hours_per_day: 24
+      load_factor_vfd: 0.75
+      load_factor_dol: 0.95
+      notes: "Follows membrane flux"
+
+    # Chemical dosing
+    chemical_dosing:
+      duty_cycle: "continuous"
+      running_hours_per_day: 24
+      load_factor_vfd: 0.60
+      load_factor_dol: 0.80
+      notes: "Flow-paced dosing"
+
+    # Backwash
+    backwash:
+      duty_cycle: "batch"
+      running_hours_per_day: 4
+      load_factor_vfd: 0.90
+      load_factor_dol: 0.95
+      notes: "Periodic backwash cycles"
+
+    # Default pump profile
+    default:
+      duty_cycle: "continuous"
+      running_hours_per_day: 20
+      load_factor_vfd: 0.75
+      load_factor_dol: 0.95
+
+  # Blowers (B)
+  blowers:
+    # Aeration
+    aeration:
+      duty_cycle: "continuous"
+      running_hours_per_day: 24
+      load_factor_vfd: 0.70  # DO control, typical 50-80% speed
+      load_factor_dol: 0.95
+      notes: "DO control varies speed/valve"
+
+    # Air scour / membrane cleaning
+    air_scour:
+      duty_cycle: "intermittent"
+      running_hours_per_day: 6
+      load_factor_vfd: 0.90
+      load_factor_dol: 0.95
+      notes: "Cyclic air scour for membranes"
+
+    # Grit removal aeration
+    grit_aeration:
+      duty_cycle: "continuous"
+      running_hours_per_day: 24
+      load_factor_vfd: 0.85
+      load_factor_dol: 0.95
+      notes: "Fixed air rate"
+
+    # Default blower profile
+    default:
+      duty_cycle: "continuous"
+      running_hours_per_day: 24
+      load_factor_vfd: 0.75
+      load_factor_dol: 0.95
+
+  # Mixers/Agitators (AG)
+  mixers:
+    # Equalization tank
+    equalization:
+      duty_cycle: "continuous"
+      running_hours_per_day: 24
+      load_factor_vfd: 0.85
+      load_factor_dol: 0.95
+      notes: "Continuous mixing"
+
+    # Anoxic zone
+    anoxic:
+      duty_cycle: "continuous"
+      running_hours_per_day: 24
+      load_factor_vfd: 0.80
+      load_factor_dol: 0.95
+      notes: "Low speed mixing for denitrification"
+
+    # Anaerobic digester
+    digester:
+      duty_cycle: "continuous"
+      running_hours_per_day: 24
+      load_factor_vfd: 0.85
+      load_factor_dol: 0.95
+      notes: "Continuous gas mixing"
+
+    # Chemical tank
+    chemical_tank:
+      duty_cycle: "continuous"
+      running_hours_per_day: 24
+      load_factor_vfd: 0.70
+      load_factor_dol: 0.95
+      notes: "Low intensity mixing"
+
+    # Flocculation
+    flocculation:
+      duty_cycle: "continuous"
+      running_hours_per_day: 24
+      load_factor_vfd: 0.60
+      load_factor_dol: 0.85
+      notes: "Gentle mixing, variable speed"
+
+    # Default mixer profile
+    default:
+      duty_cycle: "continuous"
+      running_hours_per_day: 24
+      load_factor_vfd: 0.80
+      load_factor_dol: 0.95
+
+  # Screens (SC)
+  screens:
+    coarse_screen:
+      duty_cycle: "intermittent"
+      running_hours_per_day: 12
+      load_factor_vfd: 0.60
+      load_factor_dol: 0.70
+      notes: "Timer or level controlled"
+
+    fine_screen:
+      duty_cycle: "intermittent"
+      running_hours_per_day: 16
+      load_factor_vfd: 0.65
+      load_factor_dol: 0.75
+      notes: "More frequent operation"
+
+    default:
+      duty_cycle: "intermittent"
+      running_hours_per_day: 12
+      load_factor_vfd: 0.60
+      load_factor_dol: 0.70
+
+  # Conveyors (CN)
+  conveyors:
+    screenings:
+      duty_cycle: "intermittent"
+      running_hours_per_day: 8
+      load_factor_vfd: 0.70
+      load_factor_dol: 0.80
+      notes: "Follows screen operation"
+
+    grit:
+      duty_cycle: "intermittent"
+      running_hours_per_day: 12
+      load_factor_vfd: 0.75
+      load_factor_dol: 0.85
+      notes: "Timer controlled"
+
+    sludge:
+      duty_cycle: "intermittent"
+      running_hours_per_day: 8
+      load_factor_vfd: 0.80
+      load_factor_dol: 0.90
+      notes: "Batch dewatering"
+
+    default:
+      duty_cycle: "intermittent"
+      running_hours_per_day: 8
+      load_factor_vfd: 0.70
+      load_factor_dol: 0.80
+
+  # Compressors (C)
+  compressors:
+    instrument_air:
+      duty_cycle: "intermittent"
+      running_hours_per_day: 12
+      load_factor_vfd: 0.75
+      load_factor_dol: 0.85
+      notes: "Load/unload control"
+
+    biogas:
+      duty_cycle: "continuous"
+      running_hours_per_day: 24
+      load_factor_vfd: 0.80
+      load_factor_dol: 0.90
+      notes: "Continuous biogas handling"
+
+    default:
+      duty_cycle: "intermittent"
+      running_hours_per_day: 16
+      load_factor_vfd: 0.75
+      load_factor_dol: 0.85
+
+  # Fans (FN)
+  fans:
+    ventilation:
+      duty_cycle: "continuous"
+      running_hours_per_day: 24
+      load_factor_vfd: 0.70
+      load_factor_dol: 0.85
+      notes: "Building ventilation"
+
+    odor_control:
+      duty_cycle: "continuous"
+      running_hours_per_day: 24
+      load_factor_vfd: 0.80
+      load_factor_dol: 0.90
+      notes: "Continuous extraction"
+
+    default:
+      duty_cycle: "continuous"
+      running_hours_per_day: 24
+      load_factor_vfd: 0.75
+      load_factor_dol: 0.85
+
+  # Thickeners/Clarifiers mechanisms (TH/CL)
+  clarifier_mechanisms:
+    primary:
+      duty_cycle: "continuous"
+      running_hours_per_day: 24
+      load_factor_vfd: 0.70
+      load_factor_dol: 0.80
+      notes: "Low speed, torque-limited"
+
+    secondary:
+      duty_cycle: "continuous"
+      running_hours_per_day: 24
+      load_factor_vfd: 0.65
+      load_factor_dol: 0.75
+      notes: "Very low speed"
+
+    thickener:
+      duty_cycle: "continuous"
+      running_hours_per_day: 24
+      load_factor_vfd: 0.75
+      load_factor_dol: 0.85
+      notes: "Continuous sludge collection"
+
+    default:
+      duty_cycle: "continuous"
+      running_hours_per_day: 24
+      load_factor_vfd: 0.70
+      load_factor_dol: 0.80
+
+# Diversity Factor Rules
+diversity_factors:
+  description: |
+    Diversity factor derivation from quantity notation.
+    Diversity = Working units / Total units
+
+  # Parse quantity_note patterns
+  patterns:
+    "1W":
+      working: 1
+      standby: 0
+      total: 1
+      diversity: 1.0
+    "1W + 1S":
+      working: 1
+      standby: 1
+      total: 2
+      diversity: 0.50
+    "2W":
+      working: 2
+      standby: 0
+      total: 2
+      diversity: 1.0
+    "2W + 1S":
+      working: 2
+      standby: 1
+      total: 3
+      diversity: 0.67
+    "3W":
+      working: 3
+      standby: 0
+      total: 3
+      diversity: 1.0
+    "3W + 1S":
+      working: 3
+      standby: 1
+      total: 4
+      diversity: 0.75
+    "4W":
+      working: 4
+      standby: 0
+      total: 4
+      diversity: 1.0
+    "4W + 1S":
+      working: 4
+      standby: 1
+      total: 5
+      diversity: 0.80
+    "N+1":
+      description: "Variable N working + 1 common standby"
+      formula: "diversity = N / (N + 1)"
+
+  # Default diversity by equipment category
+  defaults:
+    critical:
+      description: "Critical equipment with dedicated standby"
+      diversity: 0.50
+      examples: ["lift_station_pump", "aeration_blower"]
+    redundant:
+      description: "Redundant equipment, N+1 configuration"
+      diversity: 0.67
+      examples: ["ras_pump", "feed_pump"]
+    non_redundant:
+      description: "Single duty equipment"
+      diversity: 1.0
+      examples: ["mixer", "conveyor"]
+
+# Panel-Level Diversity
+panel_diversity:
+  description: |
+    Additional diversity factor applied at MCC/panel level.
+    Accounts for non-simultaneous operation across all feeders.
+
+  by_feeder_count:
+    - feeder_range: [1, 5]
+      diversity: 0.90
+    - feeder_range: [6, 10]
+      diversity: 0.85
+    - feeder_range: [11, 20]
+      diversity: 0.80
+    - feeder_range: [21, 50]
+      diversity: 0.75
+    - feeder_range: [51, 100]
+      diversity: 0.70
+
+  by_process_type:
+    headworks:
+      diversity: 0.75
+      notes: "Intermittent screening, grit removal"
+    biological:
+      diversity: 0.85
+      notes: "Continuous aeration, mixing"
+    tertiary:
+      diversity: 0.80
+      notes: "Continuous filtration, backwash cycles"
+    sludge:
+      diversity: 0.70
+      notes: "Batch dewatering, thickening"
+    chemical:
+      diversity: 0.75
+      notes: "Flow-paced dosing"
+    utilities:
+      diversity: 0.65
+      notes: "Mixed loads, HVAC"
+
+# Load Factor Guidelines
+load_factor_guidelines:
+  description: |
+    Guidelines for estimating load factor based on control type.
+
+  vfd_applications:
+    pumps:
+      description: "VFD-controlled pumps typically run at 60-80% speed"
+      typical_load_factor: 0.70
+      notes: "Affinity laws: Power varies with cube of speed"
+    blowers:
+      description: "VFD blowers for DO control"
+      typical_load_factor: 0.70
+      notes: "Wide speed range based on loading"
+    fans:
+      description: "VFD fans for flow control"
+      typical_load_factor: 0.75
+
+  dol_applications:
+    description: "DOL motors run at full speed when on"
+    typical_load_factor: 0.95
+    notes: "Factor < 1.0 accounts for motor efficiency curve"
+
+# Duty Cycle Definitions
+duty_cycles:
+  continuous:
+    description: "Equipment runs continuously (>22 hours/day)"
+    typical_hours: 24
+  intermittent:
+    description: "Equipment cycles on/off (8-22 hours/day)"
+    typical_hours: 16
+  batch:
+    description: "Equipment runs in batches (<8 hours/day)"
+    typical_hours: 6
+  standby:
+    description: "Standby equipment, rarely operates"
+    typical_hours: 1
+    notes: "Include in connected load, not running load"

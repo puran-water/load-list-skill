@@ -1,0 +1,518 @@
+# Motor Full Load Ampere (FLA) Tables
+# Source: NEC 430.250 (3-phase), NEC 430.248 (1-phase), IEC 60034
+#
+# IMPORTANT: Use table lookup, NOT formula calculation
+# FLA values include typical motor efficiency and power factor
+
+version: "1.0.0"
+
+# NEC 430.250 - Full Load Current, Three-Phase AC Motors
+# Induction Type, Squirrel-Cage and Wound-Rotor
+nec_430_250:
+  description: "NEC Table 430.250 - Three-Phase AC Motors"
+  notes: |
+    Values in this table apply to motors running at speeds usual for belted motors
+    and motors with normal torque characteristics. Motors of high-torque or high-slip
+    characteristics may require higher ampere ratings.
+
+  # HP to kW conversion: 1 HP = 0.746 kW
+  # Format: {hp: {voltage: fla}}
+  three_phase:
+    # 115V typically not used for 3-phase
+    0.5:
+      200: 2.5
+      208: 2.4
+      230: 2.2
+      460: 1.1
+      575: 0.9
+    0.75:
+      200: 3.7
+      208: 3.5
+      230: 3.2
+      460: 1.6
+      575: 1.3
+    1:
+      200: 4.8
+      208: 4.6
+      230: 4.2
+      460: 2.1
+      575: 1.7
+    1.5:
+      200: 6.9
+      208: 6.6
+      230: 6.0
+      460: 3.0
+      575: 2.4
+    2:
+      200: 7.8
+      208: 7.5
+      230: 6.8
+      460: 3.4
+      575: 2.7
+    3:
+      200: 11.0
+      208: 10.6
+      230: 9.6
+      460: 4.8
+      575: 3.9
+    5:
+      200: 17.5
+      208: 16.7
+      230: 15.2
+      460: 7.6
+      575: 6.1
+    7.5:
+      200: 25.3
+      208: 24.2
+      230: 22
+      460: 11
+      575: 9
+    10:
+      200: 32.2
+      208: 30.8
+      230: 28
+      460: 14
+      575: 11
+    15:
+      200: 48.3
+      208: 46.2
+      230: 42
+      460: 21
+      575: 17
+    20:
+      200: 62.1
+      208: 59.4
+      230: 54
+      460: 27
+      575: 22
+    25:
+      200: 78.2
+      208: 74.8
+      230: 68
+      460: 34
+      575: 27
+    30:
+      200: 92
+      208: 88
+      230: 80
+      460: 40
+      575: 32
+    40:
+      200: 120
+      208: 114
+      230: 104
+      460: 52
+      575: 41
+    50:
+      200: 150
+      208: 143
+      230: 130
+      460: 65
+      575: 52
+    60:
+      200: 177
+      208: 169
+      230: 154
+      460: 77
+      575: 62
+    75:
+      200: 221
+      208: 211
+      230: 192
+      460: 96
+      575: 77
+    100:
+      200: 285
+      208: 273
+      230: 248
+      460: 124
+      575: 99
+    125:
+      200: 359
+      208: 343
+      230: 312
+      460: 156
+      575: 125
+    150:
+      200: 414
+      208: 396
+      230: 360
+      460: 180
+      575: 144
+    200:
+      200: 552
+      208: 528
+      230: 480
+      460: 240
+      575: 192
+    250:
+      200: 687
+      208: 657
+      230: 598
+      460: 299
+      575: 239
+    300:
+      200: 812
+      208: 776
+      230: 706
+      460: 353
+      575: 282
+    350:
+      200: 948
+      208: 906
+      230: 824
+      460: 412
+      575: 330
+    400:
+      200: 1085
+      208: 1037
+      230: 943
+      460: 472
+      575: 377
+    450:
+      200: 1209
+      208: 1156
+      230: 1051
+      460: 526
+      575: 420
+    500:
+      200: 1346
+      208: 1287
+      230: 1170
+      460: 585
+      575: 468
+
+# NEC 430.248 - Full Load Current, Single-Phase AC Motors
+nec_430_248:
+  description: "NEC Table 430.248 - Single-Phase AC Motors"
+  notes: |
+    Values in this table apply to motors running at usual speeds and motors with
+    normal torque characteristics.
+
+  single_phase:
+    # Format: {hp: {voltage: fla}}
+    0.167:  # 1/6 HP
+      115: 4.4
+      230: 2.2
+    0.25:   # 1/4 HP
+      115: 5.8
+      230: 2.9
+    0.333:  # 1/3 HP
+      115: 7.2
+      230: 3.6
+    0.5:
+      115: 9.8
+      230: 4.9
+    0.75:
+      115: 13.8
+      230: 6.9
+    1:
+      115: 16
+      230: 8
+    1.5:
+      115: 20
+      230: 10
+    2:
+      115: 24
+      230: 12
+    3:
+      115: 34
+      230: 17
+    5:
+      115: 56
+      230: 28
+    7.5:
+      115: 80
+      230: 40
+    10:
+      115: 100
+      230: 50
+
+# IEC 60034 - Motor Full Load Current (Approximate)
+# Based on typical IE3 efficiency class motors
+iec_60034:
+  description: "IEC 60034 Typical FLA for Three-Phase Induction Motors"
+  notes: |
+    Approximate values for 4-pole, IE3 efficiency class motors.
+    Actual values vary by manufacturer and efficiency class.
+    For precise sizing, use manufacturer data.
+
+  # Format: {kw: {voltage: fla}}
+  # 50 Hz motors
+  three_phase_50hz:
+    0.37:
+      380: 1.2
+      400: 1.1
+      415: 1.1
+    0.55:
+      380: 1.6
+      400: 1.5
+      415: 1.5
+    0.75:
+      380: 2.1
+      400: 2.0
+      415: 1.9
+    1.1:
+      380: 2.9
+      400: 2.8
+      415: 2.7
+    1.5:
+      380: 3.8
+      400: 3.6
+      415: 3.5
+    2.2:
+      380: 5.2
+      400: 5.0
+      415: 4.8
+    3:
+      380: 6.9
+      400: 6.6
+      415: 6.3
+    4:
+      380: 8.9
+      400: 8.5
+      415: 8.2
+    5.5:
+      380: 12.0
+      400: 11.4
+      415: 11.0
+    7.5:
+      380: 16.0
+      400: 15.2
+      415: 14.6
+    11:
+      380: 23.0
+      400: 21.8
+      415: 21.0
+    15:
+      380: 30.5
+      400: 29.0
+      415: 27.9
+    18.5:
+      380: 37.0
+      400: 35.2
+      415: 33.9
+    22:
+      380: 43.5
+      400: 41.3
+      415: 39.8
+    30:
+      380: 58.0
+      400: 55.0
+      415: 53.0
+    37:
+      380: 71.0
+      400: 67.5
+      415: 65.0
+    45:
+      380: 86.0
+      400: 81.5
+      415: 78.5
+    55:
+      380: 104
+      400: 99
+      415: 95
+    75:
+      380: 140
+      400: 133
+      415: 128
+    90:
+      380: 167
+      400: 159
+      415: 153
+    110:
+      380: 202
+      400: 192
+      415: 185
+    132:
+      380: 242
+      400: 230
+      415: 221
+    160:
+      380: 291
+      400: 277
+      415: 267
+    200:
+      380: 362
+      400: 344
+      415: 331
+    250:
+      380: 450
+      400: 428
+      415: 412
+    315:
+      380: 565
+      400: 537
+      415: 517
+    355:
+      380: 635
+      400: 603
+      415: 581
+    400:
+      380: 715
+      400: 679
+      415: 654
+
+  # 60 Hz motors
+  three_phase_60hz:
+    0.37:
+      440: 0.9
+      460: 0.9
+      480: 0.9
+    0.55:
+      440: 1.3
+      460: 1.2
+      480: 1.2
+    0.75:
+      440: 1.7
+      460: 1.6
+      480: 1.5
+    1.1:
+      440: 2.4
+      460: 2.3
+      480: 2.2
+    1.5:
+      440: 3.1
+      460: 3.0
+      480: 2.9
+    2.2:
+      440: 4.3
+      460: 4.1
+      480: 4.0
+    3:
+      440: 5.7
+      460: 5.5
+      480: 5.2
+    4:
+      440: 7.4
+      460: 7.1
+      480: 6.8
+    5.5:
+      440: 10.0
+      460: 9.5
+      480: 9.2
+    7.5:
+      440: 13.3
+      460: 12.7
+      480: 12.2
+    11:
+      440: 19.1
+      460: 18.3
+      480: 17.5
+    15:
+      440: 25.4
+      460: 24.3
+      480: 23.3
+    18.5:
+      440: 30.8
+      460: 29.5
+      480: 28.3
+    22:
+      440: 36.2
+      460: 34.7
+      480: 33.3
+    30:
+      440: 48.3
+      460: 46.2
+      480: 44.4
+    37:
+      440: 59.2
+      460: 56.6
+      480: 54.4
+    45:
+      440: 71.7
+      460: 68.6
+      480: 65.9
+    55:
+      440: 86.7
+      460: 82.9
+      480: 79.6
+    75:
+      440: 117
+      460: 112
+      480: 107
+    90:
+      440: 140
+      460: 134
+      480: 128
+    110:
+      440: 169
+      460: 161
+      480: 155
+    132:
+      440: 202
+      460: 193
+      480: 185
+    160:
+      440: 243
+      460: 232
+      480: 223
+    200:
+      440: 302
+      460: 289
+      480: 277
+    250:
+      440: 376
+      460: 359
+      480: 345
+
+# Locked Rotor Ampere (LRA) Multipliers
+# Based on NEMA Design Letter
+lra_multipliers:
+  description: "LRA/FLA ratio by NEMA motor design letter"
+  notes: |
+    NEMA Design B is most common for general purpose motors.
+    LRA = FLA × multiplier
+
+  design_letter:
+    A:
+      description: "High starting torque, high starting current"
+      multiplier: 7.5
+      typical_applications: ["fans", "blowers", "centrifugal_pumps"]
+    B:
+      description: "Normal starting torque, low starting current (most common)"
+      multiplier: 6.0
+      typical_applications: ["pumps", "fans", "blowers", "compressors", "conveyors"]
+    C:
+      description: "High starting torque, low starting current"
+      multiplier: 6.5
+      typical_applications: ["positive_displacement_pumps", "conveyors", "crushers"]
+    D:
+      description: "Very high starting torque, high slip"
+      multiplier: 6.0
+      typical_applications: ["punch_presses", "hoists", "cranes"]
+
+  # By motor size (HP) - empirical values when design letter unknown
+  by_hp:
+    - hp_range: [0, 5]
+      multiplier: 6.5
+    - hp_range: [5, 25]
+      multiplier: 6.0
+    - hp_range: [25, 100]
+      multiplier: 5.5
+    - hp_range: [100, 500]
+      multiplier: 5.0
+
+# Conversion Factors
+conversions:
+  hp_to_kw: 0.7457
+  kw_to_hp: 1.341
+
+# Lookup function pseudo-code (for reference in Python implementation)
+lookup_notes: |
+  For NEMA motors (NEC tables):
+    1. Convert kW to HP if needed: HP = kW × 1.341
+    2. Round HP up to nearest standard size
+    3. Look up voltage (round to nearest: 200, 208, 230, 460, 575)
+    4. Return FLA from nec_430_250 (3-phase) or nec_430_248 (1-phase)
+
+  For IEC motors:
+    1. Round kW to nearest standard size
+    2. Select 50Hz or 60Hz table based on frequency
+    3. Look up voltage (round to nearest: 380, 400, 415 for 50Hz; 440, 460, 480 for 60Hz)
+    4. Return FLA from iec_60034 table
+
+  If exact match not found:
+    - Use linear interpolation between bracketing values
+    - Or use formula: FLA = (kW × 1000) / (√3 × V × eff × pf)
+      with typical eff=0.90, pf=0.85

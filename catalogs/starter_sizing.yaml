@@ -1,0 +1,399 @@
+# Starter Sizing Catalog
+# IEC contactors, NEMA starters, VFD frames, and overload relays
+#
+# Sources:
+# - IEC 60947-4-1 (Contactors and motor starters)
+# - NEMA ICS 2 (Industrial Control and Systems)
+
+version: "1.0.0"
+
+# IEC Contactor Sizing (AC3 Duty - Starting/Stopping Squirrel Cage Motors)
+iec_contactors:
+  description: "IEC contactor sizes by utilization category AC-3"
+  notes: |
+    AC-3: Starting, switching off during running
+    Ratings at 400V 50Hz
+    Select contactor for FLA ≤ rated current
+
+  frames:
+    "00":
+      max_kw_400v: 4
+      max_fla_400v: 9
+      typical_contactors: ["LC1D09", "3RT20xx"]
+    "0":
+      max_kw_400v: 5.5
+      max_fla_400v: 12
+      typical_contactors: ["LC1D12", "3RT20xx"]
+    "1":
+      max_kw_400v: 7.5
+      max_fla_400v: 18
+      typical_contactors: ["LC1D18", "3RT20xx"]
+    "2":
+      max_kw_400v: 15
+      max_fla_400v: 32
+      typical_contactors: ["LC1D32", "3RT20xx"]
+    "3":
+      max_kw_400v: 22
+      max_fla_400v: 50
+      typical_contactors: ["LC1D50", "3RT20xx"]
+    "4":
+      max_kw_400v: 37
+      max_fla_400v: 80
+      typical_contactors: ["LC1D80", "3RT10xx"]
+    "5":
+      max_kw_400v: 55
+      max_fla_400v: 115
+      typical_contactors: ["LC1F115", "3RT10xx"]
+    "6":
+      max_kw_400v: 90
+      max_fla_400v: 185
+      typical_contactors: ["LC1F185", "3RT10xx"]
+    "7":
+      max_kw_400v: 132
+      max_fla_400v: 265
+      typical_contactors: ["LC1F265", "3RT16xx"]
+    "8":
+      max_kw_400v: 160
+      max_fla_400v: 330
+      typical_contactors: ["LC1F330", "3RT16xx"]
+    "9":
+      max_kw_400v: 200
+      max_fla_400v: 400
+      typical_contactors: ["LC1F400", "3RT16xx"]
+
+  # Voltage derating factors
+  voltage_derating:
+    230V: 1.73  # Multiply kW rating by this
+    400V: 1.00
+    500V: 0.80
+    690V: 0.58
+
+# NEMA Starter Sizing
+nema_starters:
+  description: "NEMA starter sizes by HP rating"
+  notes: |
+    NEMA full-voltage starters for 60 Hz motors
+    Select starter for HP ≤ rated HP at voltage
+
+  sizes:
+    "00":
+      single_phase:
+        115V: 0.33
+        230V: 0.75
+      three_phase:
+        200V: 1.5
+        230V: 1.5
+        460V: 2
+        575V: 2
+    "0":
+      single_phase:
+        115V: 0.5
+        230V: 1
+      three_phase:
+        200V: 3
+        230V: 3
+        460V: 5
+        575V: 5
+    "1":
+      single_phase:
+        115V: 1
+        230V: 2
+      three_phase:
+        200V: 7.5
+        230V: 7.5
+        460V: 10
+        575V: 10
+    "2":
+      single_phase:
+        115V: 2
+        230V: 3
+      three_phase:
+        200V: 10
+        230V: 15
+        460V: 25
+        575V: 25
+    "3":
+      three_phase:
+        200V: 25
+        230V: 30
+        460V: 50
+        575V: 50
+    "4":
+      three_phase:
+        200V: 40
+        230V: 50
+        460V: 100
+        575V: 100
+    "5":
+      three_phase:
+        200V: 75
+        230V: 100
+        460V: 200
+        575V: 200
+    "6":
+      three_phase:
+        200V: 150
+        230V: 200
+        460V: 400
+        575V: 400
+    "7":
+      three_phase:
+        200V: 300
+        230V: 400
+        460V: 600
+        575V: 600
+    "8":
+      three_phase:
+        200V: 450
+        230V: 600
+        460V: 900
+        575V: 900
+    "9":
+      three_phase:
+        200V: 800
+        230V: 1000
+        460V: 1600
+        575V: 1600
+
+# VFD Frame Sizing
+vfd_frames:
+  description: "VFD frame sizes by power rating"
+  notes: |
+    Typical VFD frame sizing for HVAC/pump duty
+    Heavy duty (HD) rating is typically 1 size larger
+    Ratings at nominal voltage
+
+  # Generic frame sizing (varies by manufacturer)
+  frames_400v_nd:
+    description: "Normal Duty (ND) - Variable Torque applications"
+    sizes:
+      - frame: "A"
+        kw_range: [0.37, 2.2]
+        max_fla: 5.4
+      - frame: "B"
+        kw_range: [3, 5.5]
+        max_fla: 12.6
+      - frame: "C"
+        kw_range: [7.5, 15]
+        max_fla: 32
+      - frame: "D"
+        kw_range: [18.5, 30]
+        max_fla: 61
+      - frame: "E"
+        kw_range: [37, 55]
+        max_fla: 105
+      - frame: "F"
+        kw_range: [75, 110]
+        max_fla: 205
+      - frame: "G"
+        kw_range: [132, 160]
+        max_fla: 302
+      - frame: "H"
+        kw_range: [200, 250]
+        max_fla: 477
+      - frame: "J"
+        kw_range: [315, 400]
+        max_fla: 756
+
+  frames_400v_hd:
+    description: "Heavy Duty (HD) - Constant Torque applications"
+    notes: "Derate ND frame by one size"
+    sizes:
+      - frame: "A"
+        kw_range: [0.37, 1.5]
+        max_fla: 3.7
+      - frame: "B"
+        kw_range: [2.2, 4]
+        max_fla: 9.5
+      - frame: "C"
+        kw_range: [5.5, 11]
+        max_fla: 24
+      - frame: "D"
+        kw_range: [15, 22]
+        max_fla: 46
+      - frame: "E"
+        kw_range: [30, 45]
+        max_fla: 87
+      - frame: "F"
+        kw_range: [55, 90]
+        max_fla: 170
+      - frame: "G"
+        kw_range: [110, 132]
+        max_fla: 253
+      - frame: "H"
+        kw_range: [160, 200]
+        max_fla: 395
+      - frame: "J"
+        kw_range: [250, 315]
+        max_fla: 605
+
+  # Derating factors
+  derating:
+    altitude:
+      description: "Derate above 1000m"
+      factors:
+        1000m: 1.0
+        1500m: 0.97
+        2000m: 0.94
+        2500m: 0.91
+        3000m: 0.88
+    ambient_temp:
+      description: "Derate above 40°C"
+      factors:
+        40C: 1.0
+        45C: 0.95
+        50C: 0.90
+        55C: 0.85
+    carrier_frequency:
+      description: "Derate for high switching frequency"
+      factors:
+        2kHz: 1.0
+        4kHz: 1.0
+        8kHz: 0.95
+        12kHz: 0.90
+        16kHz: 0.80
+
+# Soft Starter Sizing
+soft_starters:
+  description: "Soft starter sizing"
+  notes: |
+    Select based on motor FLA and starting duty
+    Standard duty: 1 start per hour
+    Heavy duty: 3+ starts per hour
+
+  sizing_rules:
+    standard_duty:
+      description: "1 start/hour, 20 seconds max"
+      fla_multiplier: 1.0
+    heavy_duty:
+      description: "3 starts/hour or long acceleration"
+      fla_multiplier: 1.25
+    very_heavy_duty:
+      description: "High inertia loads"
+      fla_multiplier: 1.5
+
+  # Typical frame sizes
+  frames_400v:
+    - frame: "S0"
+      max_fla: 12
+      max_kw: 5.5
+    - frame: "S1"
+      max_fla: 25
+      max_kw: 11
+    - frame: "S2"
+      max_fla: 45
+      max_kw: 22
+    - frame: "S3"
+      max_fla: 77
+      max_kw: 37
+    - frame: "S4"
+      max_fla: 106
+      max_kw: 55
+    - frame: "S5"
+      max_fla: 171
+      max_kw: 90
+    - frame: "S6"
+      max_fla: 245
+      max_kw: 132
+    - frame: "S7"
+      max_fla: 361
+      max_kw: 200
+    - frame: "S8"
+      max_fla: 480
+      max_kw: 250
+    - frame: "S9"
+      max_fla: 600
+      max_kw: 315
+
+# Overload Relay Classes
+overload_classes:
+  description: "Thermal overload relay trip classes per IEC 60947-4-1"
+  notes: |
+    Class number indicates maximum trip time at 7.2× FLA
+    Lower class = faster trip = better motor protection
+
+  classes:
+    "Class 5":
+      max_trip_time_sec: 5
+      typical_use: ["submersible motors", "hermetic compressors"]
+      notes: "Fast trip for motors with low thermal capacity"
+    "Class 10":
+      max_trip_time_sec: 10
+      typical_use: ["general purpose", "pumps", "blowers", "fans"]
+      notes: "Standard for most industrial motors"
+    "Class 10A":
+      max_trip_time_sec: 10
+      typical_use: ["IEC motors"]
+      notes: "Tighter tolerance than Class 10"
+    "Class 20":
+      max_trip_time_sec: 20
+      typical_use: ["high inertia loads", "conveyors", "mixers"]
+      notes: "Allows longer starting time"
+    "Class 30":
+      max_trip_time_sec: 30
+      typical_use: ["very high inertia loads", "crushers", "large fans"]
+      notes: "For extended acceleration requirements"
+
+# Motor Circuit Breaker Sizing (MCCB/MPCB)
+motor_circuit_breakers:
+  description: "Motor circuit breaker sizing guidelines"
+  notes: |
+    NEC 430.52: Branch circuit short-circuit/ground-fault protection
+    Maximum ratings per NEC Table 430.52
+
+  max_rating_percent_fla:
+    inverse_time_breaker:
+      default: 250
+      if_insufficient_for_starting: 400
+    instantaneous_trip:
+      default: 800
+      if_insufficient_for_starting: 1100
+    motor_short_circuit_protector:
+      default: 800
+      if_insufficient_for_starting: 1700
+
+  # CORRECTED sizing rules (per NEC 430.52)
+  # REMOVED incorrect rule: "Breaker rating ≥ LRA" - THIS IS WRONG
+  # Branch circuit SCPD is sized as percentage of FLC, not to exceed LRA
+  sizing_rules:
+    - description: "Calculate maximum per NEC Table 430.52"
+      formula: "Max rating = FLC × (device_type_max_pct / 100)"
+      notes: |
+        Use motor FLC from NEC 430.250 tables, NOT nameplate FLA.
+        Different device types have different maximum percentages.
+    - description: "Apply next-size-up rule per 430.52(C)(1) Exception 1"
+      formula: "If calculated value not standard, use next HIGHER standard size"
+      notes: |
+        Does NOT apply to instantaneous-trip (MCP) devices.
+    - description: "Verify does not exceed maximum percentage"
+      formula: "Selected rating ≤ FLC × (exception_pct / 100)"
+      notes: |
+        Exception percentages may be used if standard percentages
+        do not allow motor to start or carry load.
+    - description: "Standard OCPD sizes per NEC 240.6"
+      standard_sizes: [15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100,
+                       110, 125, 150, 175, 200, 225, 250, 300, 350, 400,
+                       450, 500, 600, 700, 800, 1000, 1200, 1600, 2000,
+                       2500, 3000, 4000, 5000, 6000]
+
+  # See branch_circuit_protection.yaml for complete NEC 430.52 tables
+
+# Selection Logic (pseudo-code)
+selection_notes: |
+  For DOL Starter:
+    1. Calculate FLA from motor_fla_tables
+    2. Select IEC contactor frame where max_fla ≥ motor_fla
+    3. Or select NEMA size where rated HP ≥ motor HP at voltage
+    4. Select overload relay: Class 10 for general, Class 20 for high inertia
+
+  For VFD:
+    1. Determine duty: Normal (pumps, fans) or Heavy (conveyors, mixers)
+    2. Select frame where kw_range includes motor kW
+    3. Apply derating for altitude/temperature if needed
+    4. VFD provides motor protection - overload relay not needed
+
+  For Soft Starter:
+    1. Determine starting duty (starts/hour)
+    2. Calculate required FLA = motor_fla × duty_multiplier
+    3. Select frame where max_fla ≥ required FLA
+    4. Add bypass contactor for continuous running

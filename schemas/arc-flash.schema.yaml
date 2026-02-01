@@ -1,0 +1,252 @@
+# Arc Flash Study Schema
+# Placeholder schema for arc flash analysis inputs/outputs
+#
+# Purpose: Capture I/O for IEEE 1584 arc flash studies.
+# Full calculations require specialized software (SKM, ETAP, EasyPower).
+# This schema enables integration and data exchange.
+#
+# Standards Reference:
+# - IEEE 1584-2018 (Arc Flash Calculations)
+# - NFPA 70E-2024 (Electrical Safety in the Workplace)
+# - CSA Z462 (Workplace Electrical Safety - Canada)
+#
+# Version: 1.0.0
+# Last Updated: 2026-02-01
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://load-list-skill/schemas/arc-flash.schema.yaml"
+
+title: "Arc Flash Study Schema"
+description: "Schema for arc flash study inputs and outputs per IEEE 1584"
+type: object
+
+properties:
+  # Location identification
+  location_tag:
+    type: string
+    description: "Equipment/location tag for arc flash analysis"
+
+  equipment_type:
+    type: string
+    enum: [switchgear, mcc, panelboard, disconnect, motor_starter, transformer, cable_junction]
+    description: "Type of equipment being analyzed"
+
+  # System parameters (inputs)
+  system_parameters:
+    type: object
+    description: "Electrical system parameters for arc flash calculation"
+    properties:
+      nominal_voltage_v:
+        type: number
+        description: "Nominal system voltage (V)"
+
+      bolted_fault_current_ka:
+        type: number
+        description: "Three-phase bolted fault current (kA rms sym)"
+
+      arc_fault_current_ka:
+        type: number
+        description: "Calculated arcing fault current (kA)"
+
+      arc_duration_sec:
+        type: number
+        description: "Arc duration based on protective device clearing time (sec)"
+
+      working_distance_mm:
+        type: number
+        description: "Working distance from arc source (mm)"
+        default: 455  # 18 inches typical for LV
+
+      gap_mm:
+        type: number
+        description: "Gap between conductors (mm)"
+
+      enclosure_type:
+        type: string
+        enum: [open_air, box, shallow_box, deep_box, vcb, vcbb, hcb]
+        description: |
+          Electrode configuration per IEEE 1584-2018:
+          VCB: Vertical conductors in box
+          VCBB: Vertical conductors terminated in barrier
+          HCB: Horizontal conductors in box
+          open_air: No enclosure
+          box/shallow_box/deep_box: Various enclosure depths
+
+      enclosure_dimensions:
+        type: object
+        properties:
+          height_mm: { type: number }
+          width_mm: { type: number }
+          depth_mm: { type: number }
+
+  # Protective device data
+  protective_device:
+    type: object
+    properties:
+      device_tag:
+        type: string
+      device_type:
+        type: string
+      trip_rating_a:
+        type: number
+      clearing_time_sec:
+        type: number
+        description: "Protective device clearing time at arcing current"
+      fuse_class:
+        type: string
+      notes:
+        type: string
+
+  # Arc flash calculation results (outputs)
+  results:
+    type: object
+    description: "Arc flash calculation results per IEEE 1584-2018"
+    properties:
+      incident_energy_cal_cm2:
+        type: number
+        description: "Incident energy at working distance (cal/cm²)"
+
+      arc_flash_boundary_mm:
+        type: number
+        description: "Arc flash boundary - distance to 1.2 cal/cm² (mm)"
+
+      arc_flash_boundary_ft:
+        type: number
+        description: "Arc flash boundary in feet"
+
+      hazard_category:
+        type: integer
+        enum: [1, 2, 3, 4]
+        description: "PPE category per NFPA 70E Table 130.5(G)"
+
+      ppe_required:
+        type: string
+        description: "Required PPE description"
+
+      limited_approach_mm:
+        type: number
+        description: "Limited approach boundary (mm)"
+
+      restricted_approach_mm:
+        type: number
+        description: "Restricted approach boundary (mm)"
+
+      prohibited_approach_mm:
+        type: number
+        description: "Prohibited approach boundary (mm)"
+
+  # Arc flash label information
+  label_info:
+    type: object
+    description: "Information for arc flash warning label"
+    properties:
+      incident_energy_cal_cm2:
+        type: number
+      arc_flash_boundary:
+        type: string
+        description: "Formatted boundary (e.g., '3 ft 6 in')"
+      hazard_category:
+        type: integer
+      required_ppe:
+        type: string
+      working_distance:
+        type: string
+        description: "Formatted working distance"
+      equipment_name:
+        type: string
+      date_of_analysis:
+        type: string
+        format: date
+      study_reference:
+        type: string
+        description: "Reference to arc flash study document"
+
+  # Study metadata
+  study_metadata:
+    type: object
+    properties:
+      study_date:
+        type: string
+        format: date
+      study_software:
+        type: string
+        description: "Software used (e.g., ETAP, SKM, EasyPower)"
+      ieee_1584_version:
+        type: string
+        enum: ["2002", "2018"]
+        description: "IEEE 1584 version used for calculations"
+      study_document:
+        type: string
+        description: "Reference to full arc flash study report"
+      performed_by:
+        type: string
+      reviewed_by:
+        type: string
+
+  # Warnings and notes
+  warnings:
+    type: array
+    items:
+      type: string
+    description: "Warnings or special conditions"
+
+# PPE Category Reference (NFPA 70E Table 130.5(G))
+$defs:
+  ppe_categories:
+    description: "PPE category requirements per NFPA 70E"
+    type: object
+    properties:
+      category_1:
+        incident_energy_range: "4-8 cal/cm²"
+        minimum_arc_rating: "4 cal/cm²"
+        clothing: "Arc-rated long-sleeve shirt and pants or arc-rated coverall"
+        ppe: "Safety glasses, hearing protection, leather gloves"
+      category_2:
+        incident_energy_range: "8-25 cal/cm²"
+        minimum_arc_rating: "8 cal/cm²"
+        clothing: "Arc-rated long-sleeve shirt and pants or arc-rated coverall"
+        ppe: "Arc-rated face shield, balaclava, safety glasses, hearing protection, leather gloves"
+      category_3:
+        incident_energy_range: "25-40 cal/cm²"
+        minimum_arc_rating: "25 cal/cm²"
+        clothing: "Arc-rated flash suit jacket, pants, and hood"
+        ppe: "Arc-rated face shield, safety glasses, hearing protection, arc-rated gloves"
+      category_4:
+        incident_energy_range: "40+ cal/cm²"
+        minimum_arc_rating: "40 cal/cm²"
+        clothing: "Arc-rated flash suit (multi-layer)"
+        ppe: "Arc-rated face shield, safety glasses, hearing protection, arc-rated gloves"
+
+# Example instance
+examples:
+  - location_tag: "MCC-200"
+    equipment_type: "mcc"
+    system_parameters:
+      nominal_voltage_v: 480
+      bolted_fault_current_ka: 22
+      arc_fault_current_ka: 18.5
+      arc_duration_sec: 0.05
+      working_distance_mm: 455
+      gap_mm: 32
+      enclosure_type: "vcb"
+    protective_device:
+      device_tag: "CB-MAIN-200"
+      device_type: "mccb"
+      trip_rating_a: 800
+      clearing_time_sec: 0.05
+    results:
+      incident_energy_cal_cm2: 4.2
+      arc_flash_boundary_mm: 1200
+      hazard_category: 1
+      ppe_required: "Category 1 PPE - Arc-rated shirt/pants, safety glasses"
+    label_info:
+      incident_energy_cal_cm2: 4.2
+      arc_flash_boundary: "4 ft 0 in"
+      hazard_category: 1
+      required_ppe: "Category 1"
+      working_distance: "18 inches"
+      equipment_name: "MCC-200 Main Bus"
+      date_of_analysis: "2026-02-01"
+    warnings:
+      - "Arc flash analysis based on IEEE 1584-2018"
+      - "Re-analyze if system changes"

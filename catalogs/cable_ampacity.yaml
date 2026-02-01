@@ -1,0 +1,367 @@
+# Cable Ampacity Catalog
+# NEC 310 and IEC 60364-5-52 cable ampacity tables and derating factors
+#
+# Purpose: Cable sizing for motor circuits and feeders
+# Sources:
+# - NFPA 70 NEC 2023 Table 310.16 (now 310.15(B)(16))
+# - IEC 60364-5-52 Tables B.52.2 through B.52.5
+# - BS 7671 Appendix 4
+#
+# Version: 1.0.0
+# Last Updated: 2026-02-01
+
+version: "1.0.0"
+last_updated: "2026-02-01"
+
+# ============================================================================
+# NEC 310.16 - Allowable Ampacities of Insulated Conductors
+# (Now NEC 310.15(B)(16) in newer editions)
+# ============================================================================
+
+nec_310:
+  description: |
+    NEC Table 310.15(B)(16): Allowable ampacities of insulated conductors
+    rated up to and including 2000V, not more than three current-carrying
+    conductors in raceway, cable, or earth, ambient 30°C.
+
+  # 75°C copper conductors (THWN, THWN-2, XHHW, etc.) - Most common
+  table_310_16_75c_copper:
+    description: "75°C rated copper conductors in raceway"
+    conductor_temp_rating_c: 75
+    ambient_temp_c: 30
+    conductor_material: copper
+    installation: raceway
+
+    ampacities:
+      "14 AWG": 20
+      "12 AWG": 25
+      "10 AWG": 35
+      "8 AWG": 50
+      "6 AWG": 65
+      "4 AWG": 85
+      "3 AWG": 100
+      "2 AWG": 115
+      "1 AWG": 130
+      "1/0 AWG": 150
+      "2/0 AWG": 175
+      "3/0 AWG": 200
+      "4/0 AWG": 230
+      "250 kcmil": 255
+      "300 kcmil": 285
+      "350 kcmil": 310
+      "400 kcmil": 335
+      "500 kcmil": 380
+      "600 kcmil": 420
+      "700 kcmil": 460
+      "750 kcmil": 475
+      "800 kcmil": 490
+      "900 kcmil": 520
+      "1000 kcmil": 545
+
+  # 90°C copper conductors (THHN, THWN-2, XHHW-2) - For derating calculations
+  table_310_16_90c_copper:
+    description: "90°C rated copper conductors in raceway"
+    conductor_temp_rating_c: 90
+    ambient_temp_c: 30
+    conductor_material: copper
+
+    ampacities:
+      "14 AWG": 25
+      "12 AWG": 30
+      "10 AWG": 40
+      "8 AWG": 55
+      "6 AWG": 75
+      "4 AWG": 95
+      "3 AWG": 115
+      "2 AWG": 130
+      "1 AWG": 145
+      "1/0 AWG": 170
+      "2/0 AWG": 195
+      "3/0 AWG": 225
+      "4/0 AWG": 260
+      "250 kcmil": 290
+      "300 kcmil": 320
+      "350 kcmil": 350
+      "400 kcmil": 380
+      "500 kcmil": 430
+      "600 kcmil": 475
+      "700 kcmil": 520
+      "750 kcmil": 535
+      "800 kcmil": 555
+      "900 kcmil": 585
+      "1000 kcmil": 615
+
+  # Ambient temperature correction factors (Table 310.15(B)(1))
+  ambient_correction:
+    description: "Correction factors for ambient temperatures other than 30°C"
+    base_temp_c: 30
+    factors_75c:
+      21-25: 1.05
+      26-30: 1.00
+      31-35: 0.94
+      36-40: 0.88
+      41-45: 0.82
+      46-50: 0.75
+      51-55: 0.67
+      56-60: 0.58
+
+    factors_90c:
+      21-25: 1.04
+      26-30: 1.00
+      31-35: 0.96
+      36-40: 0.91
+      41-45: 0.87
+      46-50: 0.82
+      51-55: 0.76
+      56-60: 0.71
+
+  # Conduit fill adjustment factors (Table 310.15(C)(1))
+  conduit_fill_adjustment:
+    description: "Adjustment factors for more than 3 current-carrying conductors"
+    factors:
+      1-3: 1.00
+      4-6: 0.80
+      7-9: 0.70
+      10-20: 0.50
+      21-30: 0.45
+      31-40: 0.40
+      41+: 0.35
+
+# ============================================================================
+# IEC 60364-5-52 - Cable Current-Carrying Capacity
+# ============================================================================
+
+iec_60364:
+  description: |
+    IEC 60364-5-52 cable ampacities for low-voltage installations.
+    Tables B.52.2 through B.52.5.
+
+  # Table B.52.4 - PVC insulated cables in conduit (Method B)
+  table_b_52_4_pvc_conduit:
+    description: "PVC 70°C copper in conduit on wall (Method B)"
+    conductor_temp_rating_c: 70
+    ambient_temp_c: 30
+    conductor_material: copper
+    installation: "conduit_on_wall"
+    method: "B"
+
+    # 3-core or 3 single-core cables, circuit without neutral
+    ampacities_3phase:
+      "1.5 mm²": 17.5
+      "2.5 mm²": 24
+      "4 mm²": 32
+      "6 mm²": 41
+      "10 mm²": 57
+      "16 mm²": 76
+      "25 mm²": 101
+      "35 mm²": 125
+      "50 mm²": 151
+      "70 mm²": 192
+      "95 mm²": 232
+      "120 mm²": 269
+      "150 mm²": 300
+      "185 mm²": 341
+      "240 mm²": 400
+      "300 mm²": 458
+
+  # Table B.52.5 - XLPE insulated cables in conduit (Method B)
+  table_b_52_5_xlpe_conduit:
+    description: "XLPE 90°C copper in conduit on wall (Method B)"
+    conductor_temp_rating_c: 90
+    ambient_temp_c: 30
+    conductor_material: copper
+    installation: "conduit_on_wall"
+    method: "B"
+
+    ampacities_3phase:
+      "1.5 mm²": 23
+      "2.5 mm²": 31
+      "4 mm²": 42
+      "6 mm²": 54
+      "10 mm²": 75
+      "16 mm²": 100
+      "25 mm²": 133
+      "35 mm²": 164
+      "50 mm²": 198
+      "70 mm²": 253
+      "95 mm²": 306
+      "120 mm²": 354
+      "150 mm²": 393
+      "185 mm²": 449
+      "240 mm²": 528
+      "300 mm²": 603
+
+  # Table B.52.3 - Cables on cable tray (Method E/F)
+  table_b_52_3_tray:
+    description: "XLPE cables on perforated tray (Method E)"
+    conductor_temp_rating_c: 90
+    ambient_temp_c: 30
+    conductor_material: copper
+    installation: "perforated_tray"
+    method: "E"
+
+    ampacities_3phase:
+      "1.5 mm²": 26
+      "2.5 mm²": 36
+      "4 mm²": 49
+      "6 mm²": 63
+      "10 mm²": 86
+      "16 mm²": 115
+      "25 mm²": 149
+      "35 mm²": 185
+      "50 mm²": 225
+      "70 mm²": 289
+      "95 mm²": 352
+      "120 mm²": 410
+      "150 mm²": 473
+      "185 mm²": 542
+      "240 mm²": 641
+      "300 mm²": 741
+
+  # Ambient temperature correction (IEC)
+  ambient_correction:
+    description: "Correction factors for ambient temperatures other than 30°C"
+    base_temp_c: 30
+    factors_70c:
+      10: 1.22
+      15: 1.17
+      20: 1.12
+      25: 1.06
+      30: 1.00
+      35: 0.94
+      40: 0.87
+      45: 0.79
+      50: 0.71
+      55: 0.61
+      60: 0.50
+
+    factors_90c:
+      10: 1.15
+      15: 1.12
+      20: 1.08
+      25: 1.04
+      30: 1.00
+      35: 0.96
+      40: 0.91
+      45: 0.87
+      50: 0.82
+      55: 0.76
+      60: 0.71
+
+  # Grouping correction factors (IEC)
+  grouping_correction:
+    description: "Correction factors for groups of cables"
+    single_layer_touching:
+      2: 0.80
+      3: 0.70
+      4: 0.65
+      5: 0.60
+      6: 0.57
+
+    single_layer_spaced:
+      2: 0.88
+      3: 0.82
+      4: 0.77
+      5: 0.75
+      6: 0.73
+
+# ============================================================================
+# AWG to mm² Conversion
+# ============================================================================
+
+awg_mm2_conversion:
+  description: "AWG to mm² cross-reference"
+  values:
+    "14 AWG": 2.08
+    "12 AWG": 3.31
+    "10 AWG": 5.26
+    "8 AWG": 8.37
+    "6 AWG": 13.30
+    "4 AWG": 21.15
+    "3 AWG": 26.67
+    "2 AWG": 33.62
+    "1 AWG": 42.41
+    "1/0 AWG": 53.49
+    "2/0 AWG": 67.43
+    "3/0 AWG": 85.01
+    "4/0 AWG": 107.2
+    "250 kcmil": 126.7
+    "300 kcmil": 152.0
+    "350 kcmil": 177.3
+    "400 kcmil": 202.7
+    "500 kcmil": 253.4
+
+  # Closest equivalents for selection
+  equivalents:
+    "1.5 mm²": "16 AWG"
+    "2.5 mm²": "14/12 AWG"
+    "4 mm²": "12/10 AWG"
+    "6 mm²": "10 AWG"
+    "10 mm²": "8 AWG"
+    "16 mm²": "6 AWG"
+    "25 mm²": "4 AWG"
+    "35 mm²": "2 AWG"
+    "50 mm²": "1/0 AWG"
+    "70 mm²": "2/0 AWG"
+    "95 mm²": "3/0 AWG"
+    "120 mm²": "4/0 AWG"
+    "150 mm²": "300 kcmil"
+    "185 mm²": "350 kcmil"
+    "240 mm²": "500 kcmil"
+
+# ============================================================================
+# Standard Cable Sizes
+# ============================================================================
+
+standard_sizes:
+  metric_mm2: [1.5, 2.5, 4, 6, 10, 16, 25, 35, 50, 70, 95, 120, 150, 185, 240, 300, 400, 500, 630]
+  awg: ["14", "12", "10", "8", "6", "4", "3", "2", "1", "1/0", "2/0", "3/0", "4/0"]
+  kcmil: ["250", "300", "350", "400", "500", "600", "700", "750", "800", "900", "1000"]
+
+# ============================================================================
+# Voltage Drop Constants
+# ============================================================================
+
+voltage_drop:
+  description: "Cable resistance values for voltage drop calculations"
+
+  # Copper resistance at operating temperature (75°C for NEC, 70°C for IEC)
+  copper_resistivity_ohm_mm2_per_m:
+    at_20c: 0.0172
+    at_70c: 0.0214
+    at_75c: 0.0221
+
+  # Typical reactance for power cables
+  reactance_ohm_per_m:
+    pvc_conduit: 0.00008  # 0.08 mΩ/m typical
+    xlpe_conduit: 0.00008
+    direct_buried: 0.00007
+
+# ============================================================================
+# Cable Selection Notes
+# ============================================================================
+
+selection_notes: |
+  NEC Cable Selection (North America):
+  1. Determine required ampacity from load calculations
+  2. Select cable size from Table 310.16 based on conductor temperature rating
+  3. Apply ambient temperature correction if >30°C
+  4. Apply conduit fill adjustment if >3 current-carrying conductors
+  5. Verify voltage drop ≤3% for branch, ≤5% total
+
+  IEC Cable Selection (International):
+  1. Determine required current (Ib)
+  2. Select installation method (A, B, C, D, E, F, G)
+  3. Select cable from appropriate table: In ≥ Ib
+  4. Apply correction factors: Iz = In × Cg × Ca × Ci...
+  5. Verify cable current-carrying capacity: Iz ≥ Ib
+
+  Motor Circuit Cables:
+  - Branch circuit: Ampacity ≥ 125% × motor FLC (NEC 430.22)
+  - Feeder: Per NEC 430.24 formula
+  - VFD supply: Ampacity ≥ 125% × VFD input current (NEC 430.122)
+
+  Voltage Drop Guidelines:
+  - Branch circuit: ≤3% (NEC Informational Note)
+  - Total (feeder + branch): ≤5%
+  - For long runs, may need to upsize cable

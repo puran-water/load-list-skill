@@ -1,0 +1,211 @@
+# MCC Panel Schema
+# Motor Control Center panel-level data model
+#
+# Standards Reference:
+# - NEC Article 430 (Motor Circuits)
+# - UL 845 (MCC Assembly)
+# - IEC 61439-1/2 (LV Switchgear)
+#
+# Version: 1.0.0
+# Last Updated: 2026-02-01
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://load-list-skill/schemas/mcc-panel.schema.yaml"
+
+title: "MCC Panel Schema"
+description: "Schema for Motor Control Center panel data"
+type: object
+
+required:
+  - panel_tag
+
+properties:
+  # Identification
+  panel_tag:
+    type: string
+    description: "Panel tag identifier (e.g., MCC-200)"
+
+  description:
+    type: string
+    description: "Panel description"
+
+  area:
+    type: [string, integer]
+    description: "Area code or name"
+
+  location:
+    type: string
+    description: "Physical location"
+
+  # Electrical Ratings
+  supply_voltage:
+    type: number
+    description: "Supply voltage (V)"
+    default: 480
+
+  frequency_hz:
+    type: number
+    description: "System frequency (Hz)"
+    default: 60
+
+  phases:
+    type: integer
+    enum: [1, 3]
+    default: 3
+
+  # Load Totals
+  connected_kw:
+    type: number
+    description: "Total connected load (kW)"
+
+  running_kw:
+    type: number
+    description: "Total running load (kW)"
+
+  demand_kw:
+    type: number
+    description: "Demand load after diversity (kW)"
+
+  demand_kva:
+    type: number
+    description: "Demand load (kVA)"
+
+  demand_amps:
+    type: number
+    description: "Demand current (A)"
+
+  panel_diversity:
+    type: number
+    description: "Panel diversity factor"
+    minimum: 0
+    maximum: 1
+
+  # NEC-Compliant Sizing (430.24, 430.62)
+  feeder_conductor_min_a:
+    type: number
+    description: "Minimum feeder conductor ampacity per NEC 430.24"
+
+  feeder_ocpd_max_a:
+    type: number
+    description: "Maximum feeder OCPD rating per NEC 430.62"
+
+  main_breaker_a:
+    type: number
+    description: "Selected main breaker rating (A)"
+
+  bus_rating_a:
+    type: number
+    description: "Bus bar rating (A)"
+
+  # SCCR/Fault Current
+  available_fault_current_ka:
+    type: number
+    description: "Available fault current at MCC bus (kA)"
+
+  lineup_sccr_ka:
+    type: number
+    description: "MCC lineup SCCR (kA)"
+
+  manufacturer_lineup_sccr_ka:
+    type: number
+    description: "Manufacturer-tested lineup SCCR (kA)"
+
+  sccr_source:
+    type: string
+    enum: [manufacturer_tested, preliminary_worst_case, calculated]
+    description: "Source of SCCR value"
+
+  # Feeder Counts
+  feeder_counts:
+    type: object
+    properties:
+      dol:
+        type: integer
+        description: "Direct-on-line starters"
+      vfd:
+        type: integer
+        description: "VFD feeders"
+      soft_starter:
+        type: integer
+        description: "Soft starter feeders"
+      vendor:
+        type: integer
+        description: "Vendor-supplied units"
+      feeder:
+        type: integer
+        description: "Plain feeder breakers"
+      spare:
+        type: integer
+        description: "Spare buckets"
+
+  # Physical Layout
+  section_count:
+    type: integer
+    description: "Number of vertical sections"
+
+  bucket_count:
+    type: integer
+    description: "Total bucket count"
+
+  spare_bucket_count:
+    type: integer
+    description: "Spare bucket count"
+
+  total_height_mm:
+    type: number
+    description: "Total panel height (mm)"
+
+  unit_type:
+    type: string
+    enum: [FIXED, WITHDRAWABLE]
+    description: "Fixed or withdrawable bucket type"
+
+  # IEC 61439 Specific
+  rated_diversity_factor:
+    type: number
+    description: "IEC 61439 rated diversity factor (RDF)"
+    minimum: 0.1
+    maximum: 1.0
+
+  form_of_separation:
+    type: string
+    enum: [Form_1, Form_2a, Form_2b, Form_3a, Form_3b, Form_4a, Form_4b]
+    description: "IEC 61439 form of internal separation"
+
+  # Transformer Association
+  upstream_transformer:
+    type: string
+    description: "Upstream transformer tag"
+
+  # Provenance
+  output_tier:
+    type: integer
+    enum: [1, 2, 3]
+    description: "Output tier level"
+
+  warnings:
+    type: array
+    items:
+      type: string
+    description: "Warnings and notes"
+
+# Example instance
+examples:
+  - panel_tag: "MCC-200"
+    description: "Aeration Building MCC"
+    area: 200
+    supply_voltage: 480
+    connected_kw: 450
+    running_kw: 380
+    demand_kw: 340
+    demand_kva: 400
+    demand_amps: 481
+    feeder_conductor_min_a: 550
+    feeder_ocpd_max_a: 600
+    main_breaker_a: 600
+    bus_rating_a: 600
+    available_fault_current_ka: 22
+    lineup_sccr_ka: 65
+    bucket_count: 12
+    spare_bucket_count: 2
+    unit_type: "WITHDRAWABLE"
