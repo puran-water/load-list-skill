@@ -240,7 +240,7 @@ Select standard rating that does NOT exceed calculated maximum.
 - Tier 1 sizing artifacts - Duty points (flow, head)
 
 ### Downstream
-- `sld-skill` - Single line diagram generation
+- [electrical-distribution-skill](https://github.com/puran-water/electrical-distribution-skill) - Single line diagram generation
 - `cable-schedule-skill` - Cable sizing
 - `control-philosophy-skill` - Control narratives
 

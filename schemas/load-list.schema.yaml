@@ -2,7 +2,7 @@
 # Source of truth for equipment electrical characteristics and energy calculations
 #
 # Upstream: equipment-list-skill (equipment-list.qmd)
-# Downstream: sld-skill, cable-schedule-skill, control-philosophy-skill
+# Downstream: electrical-distribution-skill, cable-schedule-skill, control-philosophy-skill
 #
 # Version 2.0.0 Changes (per Codex Engineering-Grade Refactor):
 # - Added FLC vs FLA distinction per NEC 430.6(A)(1)
