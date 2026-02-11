@@ -251,6 +251,70 @@ def extract_duty_point(
     return result
 
 
+def parse_capacity_string(capacity_str: str) -> dict:
+    """Parse a free-text capacity string into structured fields.
+
+    Serves as a defensive fallback when capacity_value/capacity_unit are not present.
+
+    Patterns:
+      - "{flow} m3/hr @ {head} m w.c." -> flow_m3h + head_m
+      - "{flow} m3/hr @ {pressure} bar g" -> flow_m3h + pressure_bar_g
+      - "{flow} m3/hr" -> flow_m3h
+      - "{flow} Nm3/hr" -> flow_nm3h
+      - "{volume} m3" -> volume_m3
+      - "{flow} m3/day" -> flow_m3h (converted)
+
+    Returns:
+        Dict with parsed fields (may be empty if no match)
+    """
+    if not capacity_str:
+        return {}
+
+    text = str(capacity_str).strip()
+    result = {}
+
+    # flow @ head in m w.c.
+    m = re.search(r"([\d.]+)\s*m3/hr?\s*@\s*([\d.]+)\s*m\s*w\.?c\.?", text, re.I)
+    if m:
+        result["flow_m3h"] = float(m.group(1))
+        result["head_m"] = float(m.group(2))
+        return result
+
+    # flow @ pressure in bar
+    m = re.search(r"([\d.]+)\s*m3/hr?\s*@\s*([\d.]+)\s*bar\s*g?", text, re.I)
+    if m:
+        result["flow_m3h"] = float(m.group(1))
+        result["p1_bar"] = 1.013
+        result["p2_bar"] = 1.013 + float(m.group(2))
+        return result
+
+    # flow in Nm3/hr
+    m = re.search(r"([\d.]+)\s*[Nn]m3/hr?", text)
+    if m:
+        result["flow_nm3h"] = float(m.group(1))
+        return result
+
+    # flow in m3/day
+    m = re.search(r"([\d.]+)\s*m3/[Dd]ay?", text, re.I)
+    if m:
+        result["flow_m3h"] = float(m.group(1)) / 24
+        return result
+
+    # flow in m3/hr (plain)
+    m = re.search(r"([\d.]+)\s*m3/hr?", text, re.I)
+    if m:
+        result["flow_m3h"] = float(m.group(1))
+        return result
+
+    # volume in m3
+    m = re.search(r"([\d.]+)\s*m3(?!\s*/)", text, re.I)
+    if m:
+        result["volume_m3"] = float(m.group(1))
+        return result
+
+    return result
+
+
 def extract_all_duty_points(
     equipment_list: list[dict],
     project_dir: Path
@@ -274,16 +338,18 @@ def extract_all_duty_points(
 
         # Extract type code from tag if not provided
         if not eq_type and tag:
-            # Pattern: NNN-XXX-NN where XXX is the type
-            match = re.match(r"\d{3}-([A-Z]{1,5})-\d+", tag)
+            # Pattern: NNN-XXX-NN or XNNN-XXX-NN where XXX is the type
+            match = re.match(r"[A-Z]?\d{3,4}-([A-Z]{1,5})-\d+", tag)
             if match:
                 eq_type = match.group(1)
 
         # Prepare fallback data from equipment list
         fallback = {}
-        if "capacity_value" in eq and "capacity_unit" in eq:
-            unit = eq["capacity_unit"].lower()
-            value = eq["capacity_value"]
+
+        # Try structured capacity fields first
+        if eq.get("capacity_value") and eq.get("capacity_unit"):
+            unit = str(eq["capacity_unit"]).lower()
+            value = float(eq["capacity_value"])
 
             if "m3/h" in unit or "m³/h" in unit:
                 fallback["flow_m3h"] = value
@@ -293,9 +359,26 @@ def extract_all_duty_points(
                 fallback["flow_nm3h"] = value
             elif "m3" in unit or "m³" in unit:
                 fallback["volume_m3"] = value
+        else:
+            # Fallback: parse free-text capacity string
+            cap_str = eq.get("capacity", "")
+            if cap_str:
+                parsed = parse_capacity_string(cap_str)
+                fallback.update(parsed)
 
-        if "power_kw" in eq:
-            fallback["installed_kw"] = eq["power_kw"]
+        # Read head_m and pressure_bar_g directly from equipment entry
+        if eq.get("head_m"):
+            fallback["head_m"] = float(eq["head_m"])
+        if eq.get("pressure_bar_g"):
+            fallback["p1_bar"] = 1.013
+            fallback["p2_bar"] = 1.013 + float(eq["pressure_bar_g"])
+
+        # For blowers, treat m3/h as Nm3/h (P&ID convention)
+        if eq_type.upper() in ("B", "BL") and "flow_m3h" in fallback and "flow_nm3h" not in fallback:
+            fallback["flow_nm3h"] = fallback.pop("flow_m3h")
+
+        if eq.get("power_kw") or eq.get("power_kW"):
+            fallback["installed_kw"] = eq.get("power_kw") or eq.get("power_kW")
 
         duty_point = extract_duty_point(tag, eq_type, artifacts, fallback)
         results[tag] = duty_point

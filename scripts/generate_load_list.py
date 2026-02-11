@@ -44,6 +44,7 @@ from load_calculations import (
     get_motor_efficiency,
     get_duty_profile,
     parse_diversity_from_quantity_note,
+    round_to_iec_frame_kw,
 )
 from extract_duty_points import extract_all_duty_points
 from mcc_aggregation import (
@@ -297,7 +298,7 @@ def load_equipment_list(path: Path) -> tuple[dict, list[dict]]:
 
 def extract_equipment_type(tag: str) -> str:
     """Extract equipment type code from tag."""
-    match = re.match(r"\d{3}-([A-Z]{1,5})-\d+", tag)
+    match = re.match(r"[A-Z]?\d{3}-([A-Z]{1,5})-\d+", tag)
     if match:
         return match.group(1)
     return ""
@@ -324,8 +325,8 @@ def process_load(
         Processed load dict
     """
     tag = equipment.get("tag", equipment.get("equipment_tag", ""))
-    eq_type = equipment.get("equipment_type", extract_equipment_type(tag))
-    installed_kw = equipment.get("power_kw", equipment.get("power_kW", equipment.get("installed_kw", 0)))
+    eq_type = equipment.get("equipment_type") or equipment.get("equipment_type_code") or extract_equipment_type(tag)
+    installed_kw = equipment.get("power_kw") or equipment.get("power_kW") or equipment.get("installed_kw") or 0
     feeder_type = equipment.get("feeder_type", "DOL")
     process_unit = equipment.get("process_unit_type", "")
 
@@ -388,10 +389,27 @@ def process_load(
     # Formula: brake_kw = rated_kw * load_factor (where load_factor accounts for partial loading)
     # NOT: brake_kw = installed_kw * efficiency * 0.85 (this was incorrect - double-counting)
     if brake_kw is None:
-        # For motors, rated_kw IS the brake power at full load
-        # Apply typical load factor for partial loading estimate
-        typical_load_factor = 0.85  # Typical pump/blower loading
-        brake_kw = installed_kw * typical_load_factor
+        if installed_kw > 0:
+            # For motors, rated_kw IS the brake power at full load
+            # Apply typical load factor for partial loading estimate
+            typical_load_factor = 0.85  # Typical pump/blower loading
+            brake_kw = installed_kw * typical_load_factor
+        else:
+            brake_kw = 0
+
+    # Derive installed_kw from brake_kw when power is 0 but brake_kw was calculated
+    if installed_kw == 0 and brake_kw and brake_kw > 0:
+        installed_kw = round_to_iec_frame_kw(brake_kw)
+        # Re-derive motor parameters with new installed_kw
+        flc_table, flc_source = lookup_fla(
+            installed_kw, voltage, 3, frequency, motor_standard, efficiency_class
+        )
+        efficiency_pct = get_motor_efficiency(installed_kw, poles, efficiency_class)
+        import math as _math
+        eff = efficiency_pct / 100 if efficiency_pct else 0.90
+        pf_est = equipment.get("pf", 0.85)
+        fla_nameplate = (installed_kw * 1000) / (_math.sqrt(3) * voltage * eff * pf_est)
+        lra = calc_lra(flc_table, 6.0)
 
     # Calculate absorbed power
     absorbed_kw = calc_absorbed_kw(brake_kw, efficiency_pct)
@@ -508,12 +526,15 @@ def generate_load_list(
         capacity_mld = metadata.get("capacity_mld", 10)
 
     # Filter to only motorized equipment
-    motorized_types = ["P", "PU", "B", "BL", "AG", "MX", "SC", "CN", "C", "FN", "TH", "CF", "BF"]
+    motorized_types = ["P", "PU", "B", "BL", "AG", "MX", "SC", "CN", "C", "FN", "TH", "CF", "BF", "CT", "MP", "WC"]
     motor_equipment = []
     for eq in equipment_list:
         tag = eq.get("tag", eq.get("equipment_tag", ""))
-        eq_type = eq.get("equipment_type", extract_equipment_type(tag))
-        if eq_type in motorized_types and eq.get("power_kw", eq.get("power_kW", eq.get("installed_kw", 0))) > 0:
+        eq_type = eq.get("equipment_type") or eq.get("equipment_type_code") or extract_equipment_type(tag)
+        power = eq.get("power_kw") or eq.get("power_kW") or eq.get("installed_kw") or 0
+        has_capacity = bool((eq.get("capacity") or "").strip()) or eq.get("capacity_value") is not None
+        has_feeder = bool(eq.get("feeder_type"))
+        if eq_type in motorized_types and (power > 0 or has_capacity or has_feeder):
             motor_equipment.append(eq)
 
     # Extract duty points

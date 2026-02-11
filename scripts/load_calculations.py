@@ -596,6 +596,39 @@ def get_motor_efficiency(
 # Unit Conversions
 # ============================================================================
 
+# ============================================================================
+# IEC Standard Motor Ratings
+# ============================================================================
+
+# IEC standard motor output ratings (kW) per IEC 60034-1
+IEC_STANDARD_RATINGS_KW = [
+    0.12, 0.18, 0.25, 0.37, 0.55, 0.75,
+    1.1, 1.5, 2.2, 3.0, 4.0, 5.5, 7.5,
+    11, 15, 18.5, 22, 30, 37, 45, 55, 75,
+    90, 110, 132, 160, 200, 250, 315, 355, 400,
+]
+
+
+def round_to_iec_frame_kw(brake_kw: float, safety_factor: float = 1.15) -> float:
+    """Round brake power up to the next IEC standard motor rating.
+
+    Applies a safety factor (default 1.15) before rounding up.
+
+    Args:
+        brake_kw: Shaft power (brake power) in kW
+        safety_factor: Safety factor to apply (default 1.15 = 15% margin)
+
+    Returns:
+        Next standard IEC motor rating in kW
+    """
+    required = brake_kw * safety_factor
+    for rating in IEC_STANDARD_RATINGS_KW:
+        if rating >= required:
+            return rating
+    # If beyond table, return the required value rounded up
+    return round(required, 1)
+
+
 def hp_to_kw(hp: float) -> float:
     """Convert horsepower to kilowatts."""
     return round(hp * 0.7457, 3)
