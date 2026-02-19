@@ -78,7 +78,7 @@ def extract_pump_duty_points(artifact: dict, equipment_tag: str) -> Optional[dic
 
     for pump in pumps:
         tag = pump.get("tag", pump.get("equipment_tag", ""))
-        if tag and equipment_tag in tag or tag in equipment_tag:
+        if tag and (equipment_tag in tag or tag in equipment_tag):
             return {
                 "flow_m3h": pump.get("flow_m3h", pump.get("flow", 0)),
                 "head_m": pump.get("head_m", pump.get("head", pump.get("tdh", 0))),
@@ -244,9 +244,10 @@ def extract_duty_point(
 
     # Use fallback data if provided
     if fallback_data:
+        fallback_source = fallback_data.pop("_source", "equipment_list")
         result.update(fallback_data)
         result["duty_point_found"] = bool(fallback_data)
-        result["source"] = "fallback"
+        result["source"] = fallback_source
 
     return result
 
@@ -359,12 +360,27 @@ def extract_all_duty_points(
                 fallback["flow_nm3h"] = value
             elif "m3" in unit or "m³" in unit:
                 fallback["volume_m3"] = value
+            fallback["_source"] = "capacity_structured"
         else:
             # Fallback: parse free-text capacity string
             cap_str = eq.get("capacity", "")
             if cap_str:
                 parsed = parse_capacity_string(cap_str)
-                fallback.update(parsed)
+                if parsed:
+                    fallback.update(parsed)
+                    fallback["_source"] = "capacity_parsed"
+
+        # If still no capacity data, try parsing from description field
+        # (P&ID callout text often embedded in description, e.g.
+        #  "Biogas Recirculation Blower (FRP fan type, 500 m3/h, 37 kW)")
+        has_flow = "flow_m3h" in fallback or "flow_nm3h" in fallback or "volume_m3" in fallback
+        if not has_flow:
+            desc = eq.get("description", "")
+            if desc:
+                parsed = parse_capacity_string(str(desc))
+                if parsed:
+                    fallback.update(parsed)
+                    fallback["_source"] = "description_parsed"
 
         # Read head_m and pressure_bar_g directly from equipment entry
         if eq.get("head_m"):

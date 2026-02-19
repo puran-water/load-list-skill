@@ -638,8 +638,8 @@ def convert_yaml_to_xlsx(
                 try:
                     panel_ws = wb.create_sheet(title=sheet_name)
                     write_load_list_sheet(panel_ws, panel_loads, styles)
-                except Exception:
-                    pass  # Skip if sheet name is invalid
+                except Exception as e:
+                    print(f"Warning: Could not create sheet '{sheet_name}': {e}")
 
     # Save workbook
     output_path.parent.mkdir(parents=True, exist_ok=True)

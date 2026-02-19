@@ -173,7 +173,7 @@ def aggregate_by_panel(
         panels[panel_tag]["demand_kw"] += load.get("demand_kw", 0)
 
         # Count feeder types
-        feeder = load.get("feeder_type", "DOL").upper()
+        feeder = (load.get("feeder_type") or "DOL").upper()
         if "VFD" in feeder:
             panels[panel_tag]["feeder_counts"]["vfd"] += 1
         elif "SOFT" in feeder:
@@ -184,7 +184,7 @@ def aggregate_by_panel(
             panels[panel_tag]["feeder_counts"]["dol"] += 1
 
         # Weighted power factor
-        pf = load.get("pf", 0.85)
+        pf = load.get("pf") or 0.85
         power = load.get("running_kw", 0)
         panels[panel_tag]["pf_weighted_sum"] += pf * power
 
@@ -215,7 +215,7 @@ def aggregate_by_panel(
         area = None
         if panel_tag:
             import re
-            match = re.search(r"(\d{3})", panel_tag)
+            match = re.search(r"(\d{3,4})", panel_tag)
             if match:
                 area = int(match.group(1))
 

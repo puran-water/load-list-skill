@@ -42,7 +42,7 @@ def load_catalog(name: str) -> dict:
 
 def determine_unit_type(feeder_type: str) -> str:
     """Map feeder type to MCC unit type."""
-    feeder_upper = feeder_type.upper()
+    feeder_upper = (feeder_type or "DOL").upper()
 
     if "VFD" in feeder_upper:
         return "VFD"
@@ -200,7 +200,7 @@ def generate_bucket(
     flc_table = load.get("flc_table_a", load.get("fla", 0))
     fla_nameplate = load.get("fla_nameplate_a", flc_table * 0.95)  # Estimate if not provided
     lra = load.get("lra", flc_table * 6)
-    feeder_type = load.get("feeder_type", "DOL")
+    feeder_type = load.get("feeder_type") or "DOL"
     service_factor = load.get("service_factor", 1.0 if motor_standard == "IEC" else 1.15)
 
     # Generate bucket ID

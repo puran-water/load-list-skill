@@ -286,11 +286,11 @@ def load_equipment_list(path: Path) -> tuple[dict, list[dict]]:
     if path.suffix in [".qmd", ".md"]:
         parts = content.split("---", 2)
         if len(parts) >= 3:
-            frontmatter = yaml.safe_load(parts[1])
+            frontmatter = yaml.safe_load(parts[1]) or {}
             return frontmatter, frontmatter.get("equipment", [])
 
     # Plain YAML
-    data = yaml.safe_load(content)
+    data = yaml.safe_load(content) or {}
     if isinstance(data, list):
         return {}, data
     return data, data.get("equipment", data.get("loads", []))
@@ -326,7 +326,13 @@ def process_load(
     """
     tag = equipment.get("tag", equipment.get("equipment_tag", ""))
     eq_type = equipment.get("equipment_type") or equipment.get("equipment_type_code") or extract_equipment_type(tag)
-    installed_kw = equipment.get("power_kw") or equipment.get("power_kW") or equipment.get("installed_kw") or 0
+    # Use None-aware fallback: 0 is a valid explicit value, only fall through on None/""
+    _pw = equipment.get("power_kw")
+    if _pw is None or _pw == "":
+        _pw = equipment.get("power_kW")
+    if _pw is None or _pw == "":
+        _pw = equipment.get("installed_kw")
+    installed_kw = _pw if (_pw is not None and _pw != "") else 0
     feeder_type = equipment.get("feeder_type", "DOL")
     process_unit = equipment.get("process_unit_type", "")
 
@@ -356,7 +362,9 @@ def process_load(
         # Estimate: FLA = (kW × 1000) / (√3 × V × η × pf)
         import math
         eff = efficiency_pct / 100 if efficiency_pct else 0.90
-        pf_est = equipment.get("pf", 0.85)
+        pf_est = equipment.get("pf") or 0.85
+        if pf_est < 0.1:  # Physically impossible, treat as data error
+            pf_est = 0.85
         fla_nameplate = (installed_kw * 1000) / (math.sqrt(3) * voltage * eff * pf_est)
 
     # Calculate LRA from table FLC
@@ -397,6 +405,11 @@ def process_load(
         else:
             brake_kw = 0
 
+    # Sanity check: brake_kw should never exceed rated_kw by more than 15%
+    # This catches math errors from slash-separated capacity strings (e.g., "1000/2000 m3/hr")
+    if brake_kw and installed_kw > 0 and brake_kw > installed_kw * 1.15:
+        brake_kw = installed_kw * 0.85  # Fall back to typical loading estimate
+
     # Derive installed_kw from brake_kw when power is 0 but brake_kw was calculated
     if installed_kw == 0 and brake_kw and brake_kw > 0:
         installed_kw = round_to_iec_frame_kw(brake_kw)
@@ -407,7 +420,9 @@ def process_load(
         efficiency_pct = get_motor_efficiency(installed_kw, poles, efficiency_class)
         import math as _math
         eff = efficiency_pct / 100 if efficiency_pct else 0.90
-        pf_est = equipment.get("pf", 0.85)
+        pf_est = equipment.get("pf") or 0.85
+        if pf_est < 0.1:  # Physically impossible, treat as data error
+            pf_est = 0.85
         fla_nameplate = (installed_kw * 1000) / (_math.sqrt(3) * voltage * eff * pf_est)
         lra = calc_lra(flc_table, 6.0)
 
@@ -421,9 +436,16 @@ def process_load(
     duty_cycle = profile["duty_cycle"]
 
     # Parse diversity from quantity note
-    quantity_note = equipment.get("quantity_note", "")
+    quantity_note = str(equipment.get("quantity_note") or "")
     quantity = equipment.get("quantity", 1)
+    try:
+        quantity = int(quantity)
+    except (TypeError, ValueError):
+        quantity = 1
     diversity_factor, working, standby = parse_diversity_from_quantity_note(quantity_note)
+    # Explicit None/zero guard: diversity_factor of 0 means "off", use 1.0 default only when missing
+    if diversity_factor is None:
+        diversity_factor = 1.0
     if not quantity_note and quantity > 1:
         diversity_factor = 1.0  # All running if no standby specified
 
@@ -523,16 +545,19 @@ def generate_load_list(
     project_id = metadata.get("project_id", "UNKNOWN")
 
     if capacity_mld is None:
-        capacity_mld = metadata.get("capacity_mld", 10)
+        try:
+            capacity_mld = float(metadata.get("capacity_mld") or 10)
+        except (TypeError, ValueError):
+            capacity_mld = 10.0
 
     # Filter to only motorized equipment
-    motorized_types = ["P", "PU", "B", "BL", "AG", "MX", "SC", "CN", "C", "FN", "TH", "CF", "BF", "CT", "MP", "WC"]
+    motorized_types = ["P", "PU", "B", "BL", "AG", "MX", "SC", "CN", "C", "COMP", "FN", "TH", "CF", "BF", "CT", "MP", "WC", "G", "GR", "SP", "FP", "SM", "DR"]
     motor_equipment = []
     for eq in equipment_list:
         tag = eq.get("tag", eq.get("equipment_tag", ""))
         eq_type = eq.get("equipment_type") or eq.get("equipment_type_code") or extract_equipment_type(tag)
-        power = eq.get("power_kw") or eq.get("power_kW") or eq.get("installed_kw") or 0
-        has_capacity = bool((eq.get("capacity") or "").strip()) or eq.get("capacity_value") is not None
+        power = float(eq.get("power_kw") or eq.get("power_kW") or eq.get("installed_kw") or 0)
+        has_capacity = bool(str(eq.get("capacity") or "").strip()) or eq.get("capacity_value") is not None
         has_feeder = bool(eq.get("feeder_type"))
         if eq_type in motorized_types and (power > 0 or has_capacity or has_feeder):
             motor_equipment.append(eq)
@@ -659,7 +684,8 @@ def generate_load_list(
             "total_running_kw": totals["total_running_kw"],
             "total_demand_kw": totals["plant_demand_kw"],
             "daily_kwh": round(daily_kwh, 1),
-            "specific_energy_kwh_m3": specific_energy
+            "specific_energy_kwh_m3": specific_energy,
+            "plant_flow_m3_d": round(flow_m3_per_day, 1),
         }
     }
 

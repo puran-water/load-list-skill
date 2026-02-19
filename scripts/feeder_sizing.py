@@ -144,11 +144,11 @@ def calc_feeder_ocpd_max(
             "notes": "No motors in feeder"
         }
 
-    # Find largest motor by FLC and get its branch SCPD
+    # Find largest motor by branch SCPD rating per NEC 430.62
     motor_data = sorted(
         [(m.get('flc_table_a', 0), m.get('branch_scpd_rating_a', 0), m.get('tag', 'unknown'))
          for m in motors],
-        key=lambda x: x[0],
+        key=lambda x: x[1],
         reverse=True
     )
 
@@ -165,7 +165,7 @@ def calc_feeder_ocpd_max(
 
     # Select standard size that does NOT exceed max
     # Note: Unlike 430.52, there is NO "next size up" rule for feeders
-    selected = max(s for s in STANDARD_OCPD_SIZES if s <= max_rating)
+    selected = max((s for s in STANDARD_OCPD_SIZES if s <= max_rating), default=STANDARD_OCPD_SIZES[0])
 
     calculation_parts = [f"{largest_scpd}A (largest motor SCPD)"]
     if other_flcs > 0:
@@ -283,7 +283,7 @@ def select_main_breaker(
         dict with main breaker selection
     """
     # Select largest standard size that doesn't exceed max
-    selected = max(s for s in STANDARD_OCPD_SIZES if s <= feeder_ocpd_max)
+    selected = max((s for s in STANDARD_OCPD_SIZES if s <= feeder_ocpd_max), default=STANDARD_OCPD_SIZES[0])
 
     # Check if selected breaker is adequate for conductor
     conductor_adequate = selected >= feeder_conductor_min * 0.8  # Allow some margin
